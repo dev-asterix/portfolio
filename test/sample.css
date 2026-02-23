@@ -1,0 +1,214 @@
+/* RESET */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  background: #f4f1ea;
+  color: #111;
+  line-height: 1.6;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* PAPER TEXTURE */
+.paper-texture {
+  position: fixed;
+  inset: 0;
+  background-image: url("paper-texture.png");
+  /* subtle grain */
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* NAV */
+.nav {
+  position: fixed;
+  width: 100%;
+  padding: 24px 0;
+  background: rgba(244, 241, 234, 0.8);
+  backdrop-filter: blur(6px);
+  z-index: 10;
+}
+
+.nav-inner {
+  max-width: 1100px;
+  margin: auto;
+  display: flex;
+  justify-content: space-between;
+}
+
+.nav a {
+  margin-left: 32px;
+  text-decoration: none;
+  color: #333;
+  font-size: 14px;
+}
+
+/* HERO */
+.hero {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-align: center;
+  padding: 0 20px;
+}
+
+/* ENSO */
+.enso-circle {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  border: 2px solid rgba(150, 0, 0, 0.08);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  filter: blur(1px);
+}
+
+/* ASTERISK */
+.asterisk-mark {
+  position: absolute;
+  font-size: 420px;
+  color: rgba(0, 100, 80, 0.06);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-weight: 700;
+}
+
+/* HERO CONTENT */
+.hero-content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+}
+
+.hero h1 {
+  font-size: 52px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+
+.subtext {
+  font-size: 16px;
+  opacity: 0.7;
+  margin-bottom: 40px;
+}
+
+.cta {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.btn {
+  padding: 10px 22px;
+  text-decoration: none;
+  font-size: 14px;
+  border-radius: 4px;
+}
+
+.primary {
+  background: #0f6b52;
+  color: white;
+}
+
+.ghost {
+  border: 1px solid #333;
+  color: #333;
+}
+
+.kanji-accent {
+  margin-top: 40px;
+  font-size: 14px;
+  letter-spacing: 6px;
+  opacity: 0.4;
+}
+
+/* PHILOSOPHY */
+.philosophy {
+  padding: 140px 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.divider {
+  height: 2px;
+  width: 120px;
+  background: #000;
+  margin-bottom: 60px;
+}
+
+.principles>div {
+  margin-bottom: 60px;
+}
+
+.principles h3 {
+  font-size: 20px;
+  margin-bottom: 8px;
+}
+
+/* SYSTEMS */
+.systems {
+  padding: 140px 20px;
+  max-width: 900px;
+  margin: auto;
+}
+
+.systems h2 {
+  margin-bottom: 60px;
+  font-size: 28px;
+}
+
+.system-item {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 80px;
+}
+
+.index {
+  font-size: 18px;
+  opacity: 0.4;
+}
+
+.stack {
+  font-size: 13px;
+  opacity: 0.6;
+}
+
+/* CONSOLE */
+.console {
+  padding: 140px 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.console-window {
+  background: #111;
+  color: #eee;
+  padding: 40px;
+  max-width: 600px;
+  width: 100%;
+  border-radius: 6px;
+}
+
+.console pre {
+  font-family: "Courier New", monospace;
+  margin-bottom: 20px;
+}
+
+/* FOOTER */
+.footer {
+  text-align: center;
+  padding: 60px 0;
+  font-size: 14px;
+  opacity: 0.6;
+}
