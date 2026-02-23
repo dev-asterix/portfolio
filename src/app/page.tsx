@@ -56,7 +56,7 @@ export default function Home() {
                 <Github size={16} />
                 <span>GitHub</span>
               </a>
-              <a href="mailto:hello@asterix.dev" className="flex items-center gap-2 px-4 py-2 rounded-md bg-cyan-glowing/10 text-cyan-glowing hover:bg-cyan-glowing/20 transition-colors">
+              <a href="mailto:support@astrx.dev" className="flex items-center gap-2 px-4 py-2 rounded-md bg-cyan-glowing/10 text-cyan-glowing hover:bg-cyan-glowing/20 transition-colors">
                 <Mail size={16} />
                 <span>Contact</span>
               </a>
@@ -79,7 +79,7 @@ export default function Home() {
                 </span>
               </div>
               <div className="flex justify-between items-center border-b border-glass-border pb-2">
-                <span className="text-foreground/60 w-1/3">Building</span>
+                <span className="text-foreground/60 w-1/3">Build</span>
                 <span className="text-cyan-glowing font-medium text-right w-2/3 truncate">dev-asterix OS</span>
               </div>
               <div className="flex flex-col gap-2 pt-1 border-b border-glass-border pb-3">
