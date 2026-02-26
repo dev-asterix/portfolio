@@ -53,10 +53,12 @@ export default function DesktopManager({ repos, systemInfo }: DesktopManagerProp
     setRepos(repos);
   }, [repos, setRepos]);
 
-  // Initialize kernel on client mount
+  // Initialize kernel on client mount — run once only
+  // (kernel object is unstable across renders; init() has its own guard)
   useEffect(() => {
     kernel.init({ sysinfoIntervalMs: 10000 });
-  }, [kernel]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     // Only set initial windows if none are open (e.g., first load)

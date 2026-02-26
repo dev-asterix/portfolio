@@ -16,6 +16,11 @@ export default function ThemeToggle() {
         const newScheme = currentTheme === "dark" ? "light" : "dark";
         setTheme(newScheme);
         try {
+          window.dispatchEvent(new CustomEvent('os-event:theme-changed', { detail: { theme: newScheme } }));
+        } catch (e) {
+          // noop
+        }
+        try {
           updateSettings({ colorScheme: newScheme });
         } catch (e) {
           // noop

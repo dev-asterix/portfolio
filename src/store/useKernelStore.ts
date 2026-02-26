@@ -18,12 +18,21 @@ export interface KernelTask {
   lastRun?: number;
 }
 
+export interface KernelEvent {
+  id: string;
+  ts: number;
+  type: string;
+  message: string;
+  meta?: any;
+}
+
 interface KernelState {
   activeRepo?: string;
   foregroundWindowId?: string;
   processes: Record<string, ProcessEntry>;
   tasks: Record<string, KernelTask>;
   lastSysinfo?: SystemInfo | null;
+  events: KernelEvent[];
 
   // actions
   registerProcess: (p: ProcessEntry) => void;
@@ -33,6 +42,8 @@ interface KernelState {
   setSysinfo: (s?: SystemInfo | null) => void;
   scheduleTask: (t: KernelTask) => void;
   removeTask: (id: string) => void;
+  pushEvent: (e: Omit<KernelEvent, 'id' | 'ts'>) => void;
+  clearEvents: () => void;
 }
 
 export const useKernelStore = create<KernelState>((set, get) => ({
@@ -41,6 +52,7 @@ export const useKernelStore = create<KernelState>((set, get) => ({
   processes: {},
   tasks: {},
   lastSysinfo: null,
+  events: [],
 
   registerProcess: (p: ProcessEntry) => {
     set((s) => ({ processes: { ...s.processes, [p.id]: p } }));
@@ -54,9 +66,9 @@ export const useKernelStore = create<KernelState>((set, get) => ({
     });
   },
 
-  setForegroundWindow: (id?: string) => set({ foregroundWindowId: id }),
-  setActiveRepo: (repo?: string) => set({ activeRepo: repo }),
-  setSysinfo: (s?: SystemInfo | null) => set({ lastSysinfo: s ?? null }),
+  setForegroundWindow: (id?: string) => set(() => ({ foregroundWindowId: id })),
+  setActiveRepo: (repo?: string) => set(() => ({ activeRepo: repo })),
+  setSysinfo: (s?: SystemInfo | null) => set(() => ({ lastSysinfo: s ?? null })),
 
   scheduleTask: (t: KernelTask) => set((s) => ({ tasks: { ...s.tasks, [t.id]: t } })),
   removeTask: (id: string) => set((s) => {
@@ -64,6 +76,11 @@ export const useKernelStore = create<KernelState>((set, get) => ({
     delete copy[id];
     return { tasks: copy };
   }),
+  pushEvent: (e: Omit<KernelEvent, 'id' | 'ts'>) => {
+    const ev: KernelEvent = { id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`, ts: Date.now(), ...e };
+    set((s) => ({ events: [...(s.events || []).slice(-50), ev] }));
+  },
+  clearEvents: () => set({ events: [] }),
 }));
 
 export default useKernelStore;

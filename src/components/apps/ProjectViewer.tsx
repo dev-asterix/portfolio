@@ -12,6 +12,7 @@ import FileExplorer from "@/components/ui/FileExplorer";
 import CodeViewer from "@/components/ui/CodeViewer";
 import ImageViewer from "@/components/apps/ImageViewer";
 import { useKernel } from "@/lib/kernel";
+import useKernelStore from "@/store/useKernelStore";
 import { EnrichedRepo } from "@/lib/githubAggregator";
 
 interface ProjectViewerProps {
@@ -32,6 +33,7 @@ interface RepoDetailData {
 
 export default function ProjectViewer({ repoName }: ProjectViewerProps) {
   const kernel = useKernel();
+  const setActiveRepo = useKernelStore((s) => s.setActiveRepo);
   const [data, setData] = useState<RepoDetailData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -56,13 +58,13 @@ export default function ProjectViewer({ repoName }: ProjectViewerProps) {
   }, [repoName]);
 
   // Set active repo in kernel context while this viewer is mounted
+  // Use stable store selector (not kernel object) to avoid infinite re-render loop
   useEffect(() => {
-    kernel.setActiveRepo(repoName);
+    setActiveRepo(repoName);
     return () => {
-      // clear active repo when leaving
-      kernel.setActiveRepo(undefined);
+      setActiveRepo(undefined);
     };
-  }, [kernel, repoName]);
+  }, [setActiveRepo, repoName]);
 
   if (loading) {
     return (

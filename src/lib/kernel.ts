@@ -46,10 +46,22 @@ export function useKernel() {
       notepad: "Notepad",
       imageviewer: metadata?.alt ?? "Image Viewer",
       monitor: "Activity Monitor",
-      calculator: "Calculator"
     };
 
     store.openWindow(type, title ?? defaultTitles[type], x, y, metadata);
+    // Emit lightweight kernel events for observability
+    try {
+      const evtDetail = { type: 'openApp', windowType: type, title: title ?? defaultTitles[type], metadata };
+      window.dispatchEvent(new CustomEvent('os-event:open-app', { detail: evtDetail }));
+      if (type === 'project' && metadata?.repoName) {
+        window.dispatchEvent(new CustomEvent('os-event:repo-opened', { detail: { repo: metadata.repoName } }));
+      }
+      if (metadata?.fileName) {
+        window.dispatchEvent(new CustomEvent('os-event:file-opened', { detail: { file: metadata.fileName } }));
+      }
+    } catch (e) {
+      // noop
+    }
   }
 
   /** Open a URL in Asterix Browser — focuses existing browser or opens new one */
@@ -65,6 +77,12 @@ export function useKernel() {
       }
     } else {
       store.openWindow("browser", "Asterix Browser", undefined, undefined, { url: resolved.displayUrl });
+    }
+    // Emit browser navigation event
+    try {
+      window.dispatchEvent(new CustomEvent('os-event:browser-navigated', { detail: { url: resolved.displayUrl } }));
+    } catch (e) {
+      // noop
     }
   }
 
@@ -123,6 +141,11 @@ export function useKernel() {
   /** Set foreground window id */
   function setForegroundWindow(id?: string) {
     k.setForegroundWindow(id);
+    try {
+      window.dispatchEvent(new CustomEvent('os-event:window-focused', { detail: { id } }));
+    } catch (e) {
+      // noop
+    }
   }
 
   /** Initialize kernel runtime (start polling tasks) */
@@ -150,6 +173,42 @@ export function useKernel() {
     // initial
     run();
     setInterval(run, interval);
+
+    // lightweight kernel event bus — listen to OS-level custom events and log them in kernel store
+    const handleEvent = (ev: Event) => {
+      try {
+        const e = ev as CustomEvent;
+        const t = (e.type || 'os-event') as string;
+        const d = e.detail;
+        const msg = (() => {
+          if (t === 'os-event:repo-opened') return `Repo opened: ${d?.repo ?? 'unknown'}`;
+          if (t === 'os-event:file-opened') return `File: ${d?.file} opened`;
+          if (t === 'os-event:browser-navigated') return `Browser: ${d?.url}`;
+          if (t === 'os-event:open-app') return `${d?.windowType} opened`;
+          if (t === 'os-event:window-focused') return `Window focused: ${d?.id ?? 'none'}`;
+          if (t === 'os-event:theme-changed') return `Theme changed: ${d?.theme}`;
+          return `${t}`;
+        })();
+        k.pushEvent({ type: t.replace('os-event:', ''), message: msg, meta: d });
+      } catch (err) {
+        // noop
+      }
+    };
+
+    // register a few event types
+    ['os-event:repo-opened', 'os-event:file-opened', 'os-event:browser-navigated', 'os-event:open-app', 'os-event:window-focused', 'os-event:theme-changed'].forEach((n) => {
+      window.addEventListener(n, handleEvent as EventListener);
+    });
+
+    // seed a few demo events so Activity Monitor feels alive on start
+    try {
+      k.pushEvent({ type: 'render', message: 'RepoView rendering' });
+      k.pushEvent({ type: 'github', message: 'GitHub API fetch' });
+      k.pushEvent({ type: 'file', message: 'File: layout.tsx opened' });
+      k.pushEvent({ type: 'browser', message: 'Browser: /projects/portfolio' });
+    } catch (e) {
+      // noop
+    }
   }
 
   return { openApp, openBrowser, openPath, notify, killPid, killId, refreshRepos, setActiveRepo, setForegroundWindow, init, store };
