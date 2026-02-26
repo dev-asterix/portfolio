@@ -13,7 +13,7 @@ interface HistoryEntry {
 
 const whoamiOutput = (
   <div className="flex flex-col gap-4 mt-2">
-    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-white leading-tight">
+    <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-black dark:text-white leading-tight">
       Engineering interfaces <br />
       <span className="text-cyan-glowing">that think.</span>
     </h1>

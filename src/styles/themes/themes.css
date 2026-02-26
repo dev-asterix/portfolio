@@ -1,0 +1,270 @@
+/* ═══════════════════════════════════════════════════════════════════════════════
+   AsterixOS — Theme Definitions
+   Each theme overrides the root CSS variables for both dark and light modes.
+   Applied via [data-theme="..."] on <html>, combined with next-themes' .dark
+   class toggle from the ThemeToggle button in the MenuBar.
+
+   Variable reference:
+     --background       Main desktop / window background
+     --foreground       Default text color
+     --emerald-burnt    Primary accent (used for highlights, icons, glows #1)
+     --cyan-glowing     Secondary accent (used for focus rings, glows #2, links)
+     --glass-bg         Semi-transparent glass surface for windows / panels
+     --glass-border     Subtle border for glass panels
+
+   Wallpaper glows in page.tsx use bg-emerald-burnt/10 + bg-cyan-glowing/10,
+   so they inherit the theme accent colors automatically.
+═══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Carbon Dark ──────────────────────────────────────────────────────────
+   A refined zinc-black OS feel. Cyan + teal accents.
+   (Mirrors the base :root / .dark defaults for safe fallback.)
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="carbon"] {
+  --background:    #09090b;
+  --foreground:    #F5F6F8;
+  --emerald-burnt: #23865c;
+  --cyan-glowing:  #00E5FF;
+  --glass-bg:      rgba(20, 25, 30, 0.40);
+  --glass-border:  rgba(255, 255, 255, 0.05);
+}
+
+:not(.dark)[data-theme="carbon"] {
+  --background:    #FAFAFA;
+  --foreground:    #18181b;
+  --emerald-burnt: #059669;
+  --cyan-glowing:  #0891b2;
+  --glass-bg:      rgba(255, 255, 255, 0.72);
+  --glass-border:  rgba(0, 0, 0, 0.09);
+}
+
+/* ── 2. Deep Abyss ───────────────────────────────────────────────────────────
+   Ultra-deep space. Violet / indigo accent palette.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="abyss"] {
+  --background:    #04050f;
+  --foreground:    #cbd5e1;
+  --emerald-burnt: #7c3aed;
+  --cyan-glowing:  #818cf8;
+  --glass-bg:      rgba(10, 12, 30, 0.50);
+  --glass-border:  rgba(129, 140, 248, 0.08);
+}
+
+:not(.dark)[data-theme="abyss"] {
+  --background:    #F5F6FF;
+  --foreground:    #1e1b4b;
+  --emerald-burnt: #7c3aed;
+  --cyan-glowing:  #4f46e5;
+  --glass-bg:      rgba(240, 241, 255, 0.80);
+  --glass-border:  rgba(79, 70, 229, 0.12);
+}
+
+/* ── 3. Emerald City ─────────────────────────────────────────────────────────
+   Forest-black base. Emerald + mint accent palette.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="emerald"] {
+  --background:    #040d09;
+  --foreground:    #d1fae5;
+  --emerald-burnt: #059669;
+  --cyan-glowing:  #34d399;
+  --glass-bg:      rgba(4, 20, 10, 0.50);
+  --glass-border:  rgba(52, 211, 153, 0.08);
+}
+
+:not(.dark)[data-theme="emerald"] {
+  --background:    #F0FFF8;
+  --foreground:    #064e3b;
+  --emerald-burnt: #059669;
+  --cyan-glowing:  #10b981;
+  --glass-bg:      rgba(240, 255, 248, 0.80);
+  --glass-border:  rgba(16, 185, 129, 0.12);
+}
+
+/* ── 4. Midnight Ocean ───────────────────────────────────────────────────────
+   Abyss-blue base. Sky + ocean blue accent palette.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="ocean"] {
+  --background:    #020a18;
+  --foreground:    #bfdbfe;
+  --emerald-burnt: #0369a1;
+  --cyan-glowing:  #38bdf8;
+  --glass-bg:      rgba(2, 15, 40, 0.50);
+  --glass-border:  rgba(56, 189, 248, 0.07);
+}
+
+:not(.dark)[data-theme="ocean"] {
+  --background:    #EFF6FF;
+  --foreground:    #1e3a5f;
+  --emerald-burnt: #0369a1;
+  --cyan-glowing:  #0284c7;
+  --glass-bg:      rgba(239, 246, 255, 0.80);
+  --glass-border:  rgba(2, 132, 199, 0.12);
+}
+
+/* ── 5. Terminal Green (Hacker) ──────────────────────────────────────────────
+   Pure-black base. Matrix green accent palette.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="hacker"] {
+  --background:    #000000;
+  --foreground:    #00ff41;
+  --emerald-burnt: #008f11;
+  --cyan-glowing:  #00ff41;
+  --glass-bg:      rgba(0, 15, 0, 0.50);
+  --glass-border:  rgba(0, 255, 65, 0.08);
+}
+
+:not(.dark)[data-theme="hacker"] {
+  --background:    #f0fff4;
+  --foreground:    #052e16;
+  --emerald-burnt: #16a34a;
+  --cyan-glowing:  #15803d;
+  --glass-bg:      rgba(240, 255, 244, 0.80);
+  --glass-border:  rgba(22, 163, 74, 0.12);
+}
+
+/* ── 6. Muted Red ───────────────────────────────────────────────────────────
+   Soft, desaturated red — subtle and warm.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="muted-red"] {
+  --background:    #140808;
+  --foreground:    #ffecec;
+  --emerald-burnt: #b04a4a;
+  --cyan-glowing:  #e88b8b;
+  --glass-bg:      rgba(20, 12, 12, 0.44);
+  --glass-border:  rgba(232, 139, 139, 0.06);
+}
+
+:not(.dark)[data-theme="muted-red"] {
+  --background:    #fff6f6;
+  --foreground:    #3b0b0b;
+  --emerald-burnt: #c05656;
+  --cyan-glowing:  #d9777a;
+  --glass-bg:      rgba(255, 246, 246, 0.86);
+  --glass-border:  rgba(192, 50, 50, 0.10);
+}
+
+/* ── 7. Burnt Orange ────────────────────────────────────────────────────────
+   Toasted, smoky orange — high character without being saturated.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="burnt-orange"] {
+  --background:    #160b06;
+  --foreground:    #fff6ef;
+  --emerald-burnt: #b85a1a;
+  --cyan-glowing:  #ff9f5a;
+  --glass-bg:      rgba(28, 12, 8, 0.44);
+  --glass-border:  rgba(255, 159, 90, 0.06);
+}
+
+:not(.dark)[data-theme="burnt-orange"] {
+  --background:    #fff8f3;
+  --foreground:    #2b1206;
+  --emerald-burnt: #ea580c;
+  --cyan-glowing:  #f97316;
+  --glass-bg:      rgba(255, 248, 243, 0.86);
+  --glass-border:  rgba(234, 88, 12, 0.10);
+}
+
+/* ── 8. Dull Amber ──────────────────────────────────────────────────────────
+   Muted amber — golden but restrained.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="dull-amber"] {
+  --background:    #141007;
+  --foreground:    #fffaf1;
+  --emerald-burnt: #a66d1e;
+  --cyan-glowing:  #f4b94b;
+  --glass-bg:      rgba(20, 16, 7, 0.44);
+  --glass-border:  rgba(244, 185, 75, 0.06);
+}
+
+:not(.dark)[data-theme="dull-amber"] {
+  --background:    #fffdf7;
+  --foreground:    #3b2b09;
+  --emerald-burnt: #b45309;
+  --cyan-glowing:  #f59e0b;
+  --glass-bg:      rgba(255, 253, 247, 0.86);
+  --glass-border:  rgba(180, 83, 9, 0.10);
+}
+
+/* ── 9. Slate ───────────────────────────────────────────────────────────────
+   Cool slate — understated, minimal contrast; good neutral accent.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="slate"] {
+  --background:    #06080c;
+  --foreground:    #e6eef6;
+  --emerald-burnt: #6b7280;
+  --cyan-glowing:  #94a3b8;
+  --glass-bg:      rgba(8, 10, 14, 0.44);
+  --glass-border:  rgba(148, 163, 184, 0.05);
+}
+
+:not(.dark)[data-theme="slate"] {
+  --background:    #f8fafc;
+  --foreground:    #0f1724;
+  --emerald-burnt: #475569;
+  --cyan-glowing:  #64748b;
+  --glass-bg:      rgba(248, 250, 252, 0.86);
+  --glass-border:  rgba(100, 116, 139, 0.10);
+}
+
+/* ── 10. Ruby ───────────────────────────────────────────────────────────────
+   Precious, deep ruby — vivid but rich.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="ruby"] {
+  --background:    #12060a;
+  --foreground:    #ffeef1;
+  --emerald-burnt: #b91c1c;
+  --cyan-glowing:  #ef6b6b;
+  --glass-bg:      rgba(18, 6, 10, 0.44);
+  --glass-border:  rgba(239, 107, 107, 0.06);
+}
+
+:not(.dark)[data-theme="ruby"] {
+  --background:    #fff6f7;
+  --foreground:    #2a0b0f;
+  --emerald-burnt: #ef4444;
+  --cyan-glowing:  #f87171;
+  --glass-bg:      rgba(255, 246, 247, 0.86);
+  --glass-border:  rgba(239, 71, 71, 0.10);
+}
+
+/* ── 11. Deep Brown ─────────────────────────────────────────────────────────
+   Earthy deep brown — warm, stable, and low-glare.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="deep-brown"] {
+  --background:    #0c0706;
+  --foreground:    #fff7f3;
+  --emerald-burnt: #5b3418;
+  --cyan-glowing:  #b98b6a;
+  --glass-bg:      rgba(12, 7, 6, 0.44);
+  --glass-border:  rgba(185, 139, 106, 0.06);
+}
+
+:not(.dark)[data-theme="deep-brown"] {
+  --background:    #fffaf8;
+  --foreground:    #26140f;
+  --emerald-burnt: #7c2d12;
+  --cyan-glowing:  #a16207;
+  --glass-bg:      rgba(255, 250, 248, 0.86);
+  --glass-border:  rgba(161, 98, 7, 0.10);
+}
+
+/* ── 12. Ghost ──────────────────────────────────────────────────────────────
+   Ethereal, near-white theme with cool gray-blue accents and very low contrast.
+─────────────────────────────────────────────────────────────────────────────── */
+.dark[data-theme="ghost"] {
+  --background:    #0b0f12; /* keep dark base but very soft */
+  --foreground:    #eaf3f8;
+  --emerald-burnt: #94a3b8; /* slate-ish accent */
+  --cyan-glowing:  #dbeafe; /* cool pale glow */
+  --glass-bg:      rgba(12, 16, 18, 0.36);
+  --glass-border:  rgba(219, 234, 254, 0.06);
+}
+
+:not(.dark)[data-theme="ghost"] {
+  --background:    #fbfdff;
+  --foreground:    #0b1220;
+  --emerald-burnt: #64748b;
+  --cyan-glowing:  #c7e0ff;
+  --glass-bg:      rgba(251, 253, 255, 0.84);
+  --glass-border:  rgba(100, 116, 139, 0.08);
+}

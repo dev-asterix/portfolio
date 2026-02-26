@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { fetchRepo, fetchReadme, fetchCommits, fetchLanguages } from '@/lib/github';
+import { fetchRepoDetails } from '@/lib/githubAggregator';
 
-export const revalidate = 60; // Cache for 60 seconds
+export const revalidate = 1800; // Cache for 30 minutes
 
 export async function GET(request: Request, { params }: { params: Promise<{ name: string }> }) {
   const resolvedParams = await params;
@@ -9,25 +9,15 @@ export async function GET(request: Request, { params }: { params: Promise<{ name
   const username = "dev-asterix";
 
   try {
-    const [repo, readme, commits, languages] = await Promise.all([
-      fetchRepo(username, repoName),
-      fetchReadme(username, repoName),
-      fetchCommits(username, repoName, 5),
-      fetchLanguages(username, repoName)
-    ]);
+    const details = await fetchRepoDetails(username, repoName);
 
-    if (!repo) {
+    if (!details) {
       return NextResponse.json({ error: "Repository not found" }, { status: 404 });
     }
 
-    return NextResponse.json({
-      repo,
-      readme,
-      commits,
-      languages
-    }, {
+    return NextResponse.json(details, {
       headers: {
-        'Cache-Control': 's-maxage=60, stale-while-revalidate=120'
+        'Cache-Control': 's-maxage=1800, stale-while-revalidate=3600'
       }
     });
   } catch (error) {

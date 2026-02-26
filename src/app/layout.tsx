@@ -26,6 +26,26 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
+      {/* Restore data-theme before first paint to prevent FOUC */}
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              try {
+                var stored = localStorage.getItem('asterix-os-storage');
+                var theme = 'carbon';
+                if (stored) {
+                  var parsed = JSON.parse(stored);
+                  theme = (parsed && parsed.settings && parsed.settings.theme) || 'carbon';
+                }
+                document.documentElement.setAttribute('data-theme', theme);
+              } catch (e) {
+                document.documentElement.setAttribute('data-theme', 'carbon');
+              }
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased selection:bg-cyan-glowing/30`}
       >

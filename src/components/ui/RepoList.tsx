@@ -26,6 +26,7 @@ const languageColors: Record<string, string> = {
 };
 
 function RepositoryCard({ repo, compact }: { repo: GitHubRepo, compact: boolean }) {
+  const openWindow = useOSStore(state => state.openWindow);
   const updatedAt = new Date(repo.updated_at);
   const daysSinceUpdate = (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60 * 24);
 
@@ -41,12 +42,14 @@ function RepositoryCard({ repo, compact }: { repo: GitHubRepo, compact: boolean 
 
   const StatusIcon = status.icon;
 
+  const handleOpenProject = () => {
+    openWindow("project", repo.name, undefined, undefined, { repoName: repo.name });
+  };
+
   return (
-    <a
-      href={repo.html_url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className={`flex flex-col gap-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 border border-glass-border transition-all duration-300 hover:border-cyan-glowing/30 hover:-translate-y-1 hover:shadow-lg group ${compact ? 'p-3' : 'p-4'}`}
+    <button
+      onClick={handleOpenProject}
+      className={`flex flex-col gap-2 rounded-lg bg-foreground/5 hover:bg-foreground/10 border border-glass-border transition-all duration-300 hover:border-cyan-glowing/30 hover:-translate-y-1 hover:shadow-lg group ${compact ? 'p-3' : 'p-4'} text-left w-full`}
     >
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-2">
@@ -60,7 +63,16 @@ function RepositoryCard({ repo, compact }: { repo: GitHubRepo, compact: boolean 
             <StatusIcon size={10} />
             <span className={compact ? 'hidden sm:inline' : ''}>{status.label}</span>
           </div>
-          <ExternalLink size={14} className="text-foreground/40 group-hover:text-cyan-glowing transition-colors" />
+          <a
+            href={repo.html_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={(e) => e.stopPropagation()}
+            className="p-1 hover:bg-foreground/10 rounded transition-colors"
+            title="Open on GitHub"
+          >
+            <ExternalLink size={14} className="text-foreground/40 hover:text-cyan-glowing transition-colors" />
+          </a>
         </div>
       </div>
 
@@ -104,7 +116,7 @@ function RepositoryCard({ repo, compact }: { repo: GitHubRepo, compact: boolean 
           Updated {formatDistanceToNow(updatedAt)} ago
         </span>
       </div>
-    </a>
+    </button>
   );
 }
 

@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "../styles/themes/themes.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -12,12 +13,12 @@
 }
 
 :root {
-  --background: #F5F6F8;
-  --foreground: #0B0E14;
-  --emerald-burnt: #135c43;
-  --cyan-glowing: #008f9e;
-  --glass-bg: rgba(255, 255, 255, 0.4);
-  --glass-border: rgba(0, 0, 0, 0.1);
+  --background: #FFFFFF;
+  --foreground: #1F2937;
+  --emerald-burnt: #059669;
+  --cyan-glowing: #0891b2;
+  --glass-bg: rgba(255, 255, 255, 0.7);
+  --glass-border: rgba(0, 0, 0, 0.08);
 }
 
 .dark {
@@ -60,8 +61,92 @@ body {
 .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 999px; }
+
 .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.15); }
 
+/* ── Highlight.js theme switching ──────────────────────────────────────────── */
+/* Light mode: use atom-one-light, override dark theme if present */
+@media (prefers-color-scheme: light) {
+  pre code.hljs {
+    background: #fafafa;
+    color: #383a42;
+  }
+}
+
+/* Dark mode: use atom-one-dark */  
+@media (prefers-color-scheme: dark) {
+  pre code.hljs {
+    background: #282c34;
+    color: #abb2bf;
+  }
+}
+
+/* Respect .dark class for next-themes */
+.dark pre code.hljs {
+  background: #282c34 !important;
+  color: #abb2bf;
+}
+
+:not(.dark) pre code.hljs {
+  background: #fafafa !important;
+  color: #383a42;
+}
+
+/* Import highlight.js themes globally and scope via .dark / :not(.dark) overrides */
+@import "highlight.js/styles/atom-one-light.css";
+@import "highlight.js/styles/atom-one-dark.css";
+
+/* Force hljs base colors to match app theme (important to override component imports) */
+.dark .hljs,
+.dark pre code.hljs {
+  background: #282c34 !important;
+  color: #abb2bf !important;
+}
+
+:not(.dark) .hljs,
+:not(.dark) pre code.hljs {
+  background: #fafafa !important;
+  color: #383a42 !important;
+}
+
+/* Force token colors per theme to avoid conflicting imported hljs styles */
+.dark .hljs .hljs-comment,
+.dark .hljs .hljs-quote { color: #5c6370 !important; }
+.dark .hljs .hljs-keyword,
+.dark .hljs .hljs-selector-tag,
+.dark .hljs .hljs-subst { color: #c678dd !important; }
+.dark .hljs .hljs-number,
+.dark .hljs .hljs-literal,
+.dark .hljs .hljs-built_in,
+.dark .hljs .hljs-builtin-name,
+.dark .hljs .hljs-meta { color: #d19a66 !important; }
+.dark .hljs .hljs-string,
+.dark .hljs .hljs-doctag { color: #98c379 !important; }
+.dark .hljs .hljs-title,
+.dark .hljs .hljs-section,
+.dark .hljs .hljs-function { color: #61afef !important; }
+.dark .hljs .hljs-variable,
+.dark .hljs .hljs-attr,
+.dark .hljs .hljs-attribute { color: #e06c75 !important; }
+
+:not(.dark) .hljs .hljs-comment,
+:not(.dark) .hljs .hljs-quote { color: #7d8799 !important; }
+:not(.dark) .hljs .hljs-keyword,
+:not(.dark) .hljs .hljs-selector-tag,
+:not(.dark) .hljs .hljs-subst { color: #a626a4 !important; }
+:not(.dark) .hljs .hljs-number,
+:not(.dark) .hljs .hljs-literal,
+:not(.dark) .hljs .hljs-built_in,
+:not(.dark) .hljs .hljs-builtin-name,
+:not(.dark) .hljs .hljs-meta { color: #c18401 !important; }
+:not(.dark) .hljs .hljs-string,
+:not(.dark) .hljs .hljs-doctag { color: #50a14f !important; }
+:not(.dark) .hljs .hljs-title,
+:not(.dark) .hljs .hljs-section,
+:not(.dark) .hljs .hljs-function { color: #4078f2 !important; }
+:not(.dark) .hljs .hljs-variable,
+:not(.dark) .hljs .hljs-attr,
+:not(.dark) .hljs .hljs-attribute { color: #e45649 !important; }
 /* ── Scrollbar hide ────────────────────────────────────────────────────────── */
 .scrollbar-none { scrollbar-width: none; }
 .scrollbar-none::-webkit-scrollbar { display: none; }

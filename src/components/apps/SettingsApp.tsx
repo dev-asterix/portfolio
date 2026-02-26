@@ -1,18 +1,35 @@
 "use client";
 
 import { useOSStore } from "@/store/useOSStore";
+import { useTheme } from "next-themes";
 import { Settings, Palette, Eye, LayoutList, Check } from "lucide-react";
+
+// [darkDot, lightDot] — hex swatches shown in the theme picker
+const THEME_SWATCHES: Record<string, { name: string; dark: string; light: string }> = {
+  carbon:  { name: "Carbon Dark",    dark: "#00E5FF",  light: "#0891b2" },
+  abyss:   { name: "Deep Abyss",     dark: "#818cf8",  light: "#4f46e5" },
+  emerald: { name: "Emerald City",   dark: "#34d399",  light: "#10b981" },
+  ocean:   { name: "Midnight Ocean", dark: "#38bdf8",  light: "#0284c7" },
+  hacker:  { name: "Terminal Green", dark: "#00ff41",  light: "#16a34a" },
+  "muted-red":    { name: "Muted Red",      dark: "#e88b8b",  light: "#d9777a" },
+  "burnt-orange": { name: "Burnt Orange",   dark: "#ff9f5a",  light: "#f97316" },
+  "dull-amber":   { name: "Dull Amber",     dark: "#f4b94b",  light: "#f59e0b" },
+  slate:           { name: "Slate",          dark: "#94a3b8",  light: "#64748b" },
+  ruby:            { name: "Ruby",           dark: "#ef6b6b",  light: "#f87171" },
+  "deep-brown":   { name: "Deep Brown",     dark: "#b98b6a",  light: "#a16207" },
+  ghost:           { name: "Ghost",          dark: "#dbeafe",  light: "#c7e0ff" },
+};
 
 export default function SettingsApp() {
   const { settings, updateSettings, pushNotification } = useOSStore();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
-  const themes = [
-    { id: "carbon", name: "Carbon Dark", color: "bg-zinc-900" },
-    { id: "abyss", name: "Deep Abyss", color: "bg-slate-950" },
-    { id: "emerald", name: "Emerald City", color: "bg-emerald-950" },
-    { id: "ocean", name: "Midnight Ocean", color: "bg-blue-950" },
-    { id: "hacker", name: "Terminal Green", color: "bg-black" },
-  ];
+  const themes = Object.entries(THEME_SWATCHES).map(([id, meta]) => ({
+    id,
+    name: meta.name,
+    accentColor: isDark ? meta.dark : meta.light,
+  }));
 
   return (
     <div className="flex flex-col h-full font-sans text-foreground overflow-y-auto p-5">
@@ -39,21 +56,31 @@ export default function SettingsApp() {
                 key={theme.id}
                 onClick={() => {
                   updateSettings({ theme: theme.id });
-                  if (typeof document !== "undefined") {
-                    document.documentElement.setAttribute("data-theme", theme.id);
+                  if (typeof document !== 'undefined') {
+                    document.documentElement.setAttribute('data-theme', theme.id);
                   }
-                  pushNotification(`Theme “${theme.name}” activated`, "success");
+                  pushNotification(`Theme "${theme.name}" activated`, 'success');
                 }}
-                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${settings.theme === theme.id
-                    ? "border-cyan-glowing bg-cyan-glowing/5 shadow-[0_0_15px_rgba(0,173,216,0.15)]"
-                    : "border-glass-border bg-foreground/5 hover:border-foreground/30 hover:bg-foreground/10"
-                  }`}
+                style={settings.theme === theme.id ? {
+                  borderColor: theme.accentColor,
+                  boxShadow: `0 0 14px ${theme.accentColor}28`,
+                } : {}}
+                className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                  settings.theme === theme.id
+                    ? 'bg-foreground/5'
+                    : 'border-glass-border bg-foreground/5 hover:border-foreground/30 hover:bg-foreground/10'
+                }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className={`w-4 h-4 rounded-full border border-foreground/20 shadow-inner ${theme.color}`} />
+                  <div
+                    className="w-4 h-4 rounded-full border border-foreground/20 shadow-inner flex-shrink-0"
+                    style={{ backgroundColor: theme.accentColor }}
+                  />
                   <span className="text-xs font-medium">{theme.name}</span>
                 </div>
-                {settings.theme === theme.id && <Check size={14} className="text-cyan-glowing" />}
+                {settings.theme === theme.id && (
+                  <Check size={14} style={{ color: theme.accentColor }} />
+                )}
               </button>
             ))}
           </div>

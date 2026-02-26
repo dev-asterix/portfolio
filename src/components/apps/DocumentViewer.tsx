@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
+import CodeViewer from "@/components/ui/CodeViewer";
 
 interface DocumentViewerProps {
   username: string;
@@ -106,16 +107,14 @@ export default function DocumentViewer({ username, repo, filePath, fileName }: D
     );
   }
 
-  // code / text / unknown fallback
+  // code / text / unknown fallback — highlighted via CodeViewer
   return (
-    <div className="h-full overflow-auto font-mono text-xs bg-black/30 rounded-lg">
-      <div className="flex items-center gap-2 px-3 py-2 border-b border-glass-border bg-foreground/5 text-foreground/40 sticky top-0">
-        <span className="text-emerald-burnt font-medium">{fileName}</span>
-        <span className="ml-auto">{getLanguageFromFile(fileName)}</span>
-      </div>
-      <pre className="p-4 overflow-auto text-foreground/85 leading-relaxed whitespace-pre-wrap wrap-break-word">
-        <code>{content}</code>
-      </pre>
+    <div className="h-full overflow-auto p-3">
+      <CodeViewer
+        path={fileName}
+        content={content}
+        language={getLanguageFromFile(fileName)}
+      />
     </div>
   );
 }

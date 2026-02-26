@@ -55,7 +55,7 @@ export default function HeroTerminal() {
         >
           <motion.h1
             variants={itemVariants}
-            className="text-4xl md:text-5xl font-bold tracking-tight text-white mb-2 leading-tight"
+            className="text-4xl md:text-5xl font-bold tracking-tight text-black dark:text-white mb-2 leading-tight"
           >
             Engineering interfaces <br />
             <span className="text-cyan-glowing">that think.</span>

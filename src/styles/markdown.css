@@ -1,0 +1,148 @@
+/* Minimal GitHub-like markdown styles (clean, high-contrast, readable)
+   These rules are intentionally small and use the project's CSS variables
+   so they adapt to each theme's colors defined in `themes.css`.
+*/
+
+.markdown-body {
+  color: var(--foreground);
+  background: transparent;
+  font-family: inherit;
+  line-height: 1.6;
+  --md-heading-weight: 600;
+  padding: 1.5rem 2rem;
+  box-sizing: border-box;
+  max-width: 980px;
+  margin: 0 auto;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  color: var(--foreground);
+  font-weight: var(--md-heading-weight);
+  margin-top: 1.2em;
+  margin-bottom: 0.6em;
+}
+
+.markdown-body h1 { font-size: 1.9rem; }
+.markdown-body h2 { font-size: 1.5rem; }
+.markdown-body h3 { font-size: 1.25rem; }
+
+.markdown-body p { margin: 0.5em 0; }
+
+.markdown-body a {
+  color: var(--cyan-glowing);
+  text-decoration: none;
+}
+.markdown-body a:hover { text-decoration: underline; opacity: 0.95; }
+
+/* Inline code */
+.markdown-body code {
+  background: rgba(0,0,0,0.04);
+  color: var(--foreground);
+  padding: 0.15rem 0.35rem;
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Courier New", monospace;
+  font-size: 0.95em;
+}
+
+/* Code blocks (pre) rely on highlight.js imports, but add padding/border */
+.markdown-body pre {
+  background: var(--background);
+  border-radius: 8px;
+  padding: 1rem;
+  overflow: auto;
+  border: 1px solid var(--glass-border);
+  margin: 0.8em 0;
+}
+
+/* Blockquotes */
+.markdown-body blockquote {
+  border-left: 4px solid var(--cyan-glowing);
+  padding: 0.35rem 1rem;
+  background: color-mix(in srgb, var(--cyan-glowing) 6%, transparent);
+  margin: 0.6em 0;
+  border-radius: 6px;
+}
+
+/* Tables */
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.8em 0;
+}
+.markdown-body thead th {
+  text-align: left;
+  border-bottom: 1px solid var(--glass-border);
+  padding: 0.45rem 0.6rem;
+}
+.markdown-body td {
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+/* Prevent table cells from using a solid background in dark themes
+   Many imported styles set cell backgrounds; force transparent so the
+   table sits cleanly on the page and only shows subtle borders like GitHub. */
+.markdown-body table,
+.markdown-body thead,
+.markdown-body tbody,
+.markdown-body tr,
+.markdown-body th,
+.markdown-body td {
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Add subtle container border and radius like GitHub */
+.markdown-body table {
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Th cells slightly muted on light themes, slightly brighter on dark themes */
+.markdown-body thead th {
+  background: color-mix(in srgb, var(--glass-bg) 60%, transparent) !important;
+}
+
+/* Task lists */
+.markdown-body input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+/* Images */
+.markdown-body img {
+  max-width: 100%;
+  border-radius: 8px;
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+}
+
+/* Horizontal rule */
+.markdown-body hr {
+  border: none;
+  height: 1px;
+  background: var(--glass-border);
+  margin: 1rem 0;
+}
+
+/* Make lists a bit more compact like GitHub */
+.markdown-body ul, .markdown-body ol { padding-left: 1.25rem; margin: 0.4rem 0; }
+
+/* Fine-tune tables on small screens */
+@media (max-width: 640px) {
+  .markdown-body table { display: block; overflow: auto; }
+}
+
+/* Responsive padding adjustments */
+@media (max-width: 1024px) {
+  .markdown-body { padding: 1.25rem 1.5rem; }
+}
+
+@media (max-width: 640px) {
+  .markdown-body { padding: 1rem; }
+}
