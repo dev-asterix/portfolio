@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useKernelStore from '@/store/useKernelStore';
 import { motion, AnimatePresence } from "framer-motion";
 import { useOSStore, OSWindow, WindowType } from "@/store/useOSStore";
 import { Activity, Cpu, MemoryStick, X, RefreshCw, Terminal, HardDrive, Settings, Info, Link, FolderGit2, ExternalLink, FileText, Image } from "lucide-react";
@@ -8,14 +9,15 @@ import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
 // ── Simulated CPU usage per process (drifts over time) ────────────────────────
-function useCpuTicker(windows: OSWindow[]) {
+function useCpuTicker(windows: OSWindow[], procList?: { pid: number; cpu?: number }[]) {
   const [cpuMap, setCpuMap] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    // Seed initial cpu values
+    // If we have a process list from the system, map CPU by PID -> window.pid
     const seed: Record<string, number> = {};
     windows.forEach((w) => {
-      seed[w.id] = seed[w.id] ?? Math.random() * 15;
+      const found = procList?.find((p) => p.pid === w.pid);
+      seed[w.id] = found ? (found.cpu ?? 0) : (Math.random() * 15);
     });
     setCpuMap(seed);
 
@@ -23,17 +25,22 @@ function useCpuTicker(windows: OSWindow[]) {
       setCpuMap((prev) => {
         const next = { ...prev };
         windows.forEach((w) => {
-          const cur = next[w.id] ?? 5;
-          // Random walk: ±3%, clamped 0.1–40
-          const delta = (Math.random() - 0.48) * 3;
-          next[w.id] = Math.max(0.1, Math.min(40, cur + delta));
+          const proc = procList?.find((p) => p.pid === w.pid);
+          if (proc) {
+            next[w.id] = proc.cpu ?? next[w.id] ?? 0;
+          } else {
+            const cur = next[w.id] ?? 5;
+            // Random walk: ±3%, clamped 0.1–40
+            const delta = (Math.random() - 0.48) * 3;
+            next[w.id] = Math.max(0.1, Math.min(40, cur + delta));
+          }
         });
         return next;
       });
     }, 1200);
 
     return () => clearInterval(interval);
-  }, [windows.length]); // re-seed when process count changes
+  }, [windows.length, procList?.length]); // re-seed when process count or procList changes
 
   return cpuMap;
 }
@@ -156,11 +163,15 @@ export default function ActivityMonitor() {
   const { windows, closeWindow, pushNotification } = useOSStore();
   const [sortKey, setSortKey] = useState<"pid" | "cpu" | "mem">("cpu");
 
-  const cpuMap = useCpuTicker(windows);
-
+  const lastSysinfo = useKernelStore((s) => s.lastSysinfo);
+  const cpuSource = lastSysinfo?.processes?.map((p) => ({ pid: p.pid, cpu: p.cpu })) ?? undefined;
+  const cpuMap = useCpuTicker(windows, cpuSource);
   const totalMem = windows.reduce((a, w) => a + w.memoryUsage, 0);
   const totalCpu = Object.values(cpuMap).reduce((a, v) => a + v, 0);
-  const SYS_MEM = 8192; // simulated 8 GB
+  const events = useKernelStore((s) => s.events ?? []);
+  // sysinfo.memTotal/memUsed are bytes — convert to MB for display
+  const SYS_MEM = lastSysinfo ? Math.round((lastSysinfo.memTotal || 0) / (1024 * 1024)) : 8192;
+  const SYS_MEM_USED = lastSysinfo ? Math.round((lastSysinfo.memUsed || 0) / (1024 * 1024)) : totalMem;
 
   const sorted = [...windows].sort((a, b) => {
     if (sortKey === "pid") return a.pid - b.pid;
@@ -177,9 +188,12 @@ export default function ActivityMonitor() {
 
   const SortButton = ({ k, label }: { k: typeof sortKey; label: string }) => (
     <button
-      onClick={() => setSortKey(k)}
+      type="button"
+      aria-pressed={sortKey === k}
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => { e.stopPropagation(); setSortKey(k); }}
       className={cn(
-        "px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition-colors border",
+        "px-2 py-0.5 rounded text-[10px] font-mono font-semibold transition-colors border cursor-pointer",
         sortKey === k
           ? "bg-cyan-glowing/15 text-cyan-glowing border-cyan-glowing/30"
           : "bg-transparent text-foreground/40 border-glass-border hover:text-foreground/70"
@@ -200,10 +214,21 @@ export default function ActivityMonitor() {
           <h2 className="text-base font-bold tracking-tight">Activity Monitor</h2>
           <p className="text-xs text-foreground/50 font-mono">{windows.length} process{windows.length !== 1 ? "es" : ""} running</p>
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 pointer-events-auto">
           <SortButton k="cpu" label="CPU" />
           <SortButton k="mem" label="MEM" />
           <SortButton k="pid" label="PID" />
+        </div>
+      </div>
+      {/* Recent kernel events */}
+      <div className="mb-3 px-1">
+        <div className="text-[11px] font-mono text-foreground/60 mb-1">Recent events</div>
+        <div className="flex gap-2 items-center overflow-x-auto">
+          {events.slice(-6).map((ev) => (
+            <div key={ev.id} className="text-[11px] font-mono text-foreground/50 bg-foreground/3 border border-glass-border rounded px-2 py-1 whitespace-nowrap">
+              {ev.message}
+            </div>
+          ))}
         </div>
       </div>
 

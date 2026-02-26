@@ -3,7 +3,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import { useTheme } from "next-themes";
 import { useOSStore, SnapState } from "@/store/useOSStore";
+import useKernelStore from '@/store/useKernelStore';
 
 interface WindowProps {
   id: string;
@@ -37,7 +39,7 @@ const EDGE_CURSORS: Record<ResizeEdge, string> = {
 
 const MIN_W = 300;
 const MIN_H = 220;
-const MENU_H = 32;   // MenuBar height
+const MENU_H = 40;   // MenuBar height (matches page top padding)
 const DOCK_H = 48;   // Taskbar height
 const SNAP_THRESHOLD = 20; // px from edge to trigger snap zone
 
@@ -53,9 +55,12 @@ export default function Window({
   initialWidth,
   initialHeight,
 }: WindowProps) {
+  const { theme, resolvedTheme } = useTheme();
+  const currentTheme = theme === "system" ? resolvedTheme : theme;
   const snapWindow = useOSStore((s) => s.snapWindow);
   const updateWindowPosition = useOSStore((s) => s.updateWindowPosition);
   const updateWindowSize = useOSStore((s) => s.updateWindowSize);
+  const setForegroundWindow = useKernelStore((s) => s.setForegroundWindow);
 
   // Local position/size — synced from store via initialX/Y
   const [pos, setPos] = useState({ x: initialX, y: initialY });
@@ -83,9 +88,9 @@ export default function Window({
   const usableH = vpH - MENU_H - DOCK_H;
 
   const snappedStyle: React.CSSProperties = (() => {
-    if (snapState === "maximized" || isMobile) return { left: 0, top: MENU_H, width: vpW, height: usableH };
-    if (snapState === "left") return { left: 0, top: MENU_H, width: vpW / 2, height: usableH };
-    if (snapState === "right") return { left: vpW / 2, top: MENU_H, width: vpW / 2, height: usableH };
+    if (snapState === "maximized" || isMobile) return { position: "fixed", left: 0, top: MENU_H, width: vpW, height: usableH };
+    if (snapState === "left") return { position: "fixed", left: 0, top: MENU_H, width: vpW / 2, height: usableH };
+    if (snapState === "right") return { position: "fixed", left: vpW / 2, top: MENU_H, width: vpW / 2, height: usableH };
     return {};
   })();
 
@@ -95,6 +100,7 @@ export default function Window({
     if ((e.target as HTMLElement).closest("button")) return;
     e.preventDefault();
     onFocus?.(id);
+    setForegroundWindow(id);
     dragStartRef.current = { mouseX: e.clientX, mouseY: e.clientY, winX: pos.x, winY: pos.y };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }, [id, isSnapped, onFocus, pos]);
@@ -133,6 +139,7 @@ export default function Window({
     e.stopPropagation();
     e.preventDefault();
     onFocus?.(id);
+    setForegroundWindow(id);
     resizeRef.current = {
       edge, startX: e.clientX, startY: e.clientY,
       startW: size.w, startH: size.h,
@@ -220,15 +227,17 @@ export default function Window({
         }}
         exit={{ opacity: 0, scale: 0.92, filter: "blur(4px)" }}
         transition={{ duration: 0.22, ease: "easeOut" }}
-        onPointerDown={() => onFocus?.(id)}
+        onPointerDown={() => { onFocus?.(id); setForegroundWindow(id); }}
         style={{
           zIndex,
           ...(isSnapped ? snappedStyle : { x: pos.x, y: pos.y, width: size.w, height: size.h, position: "fixed" }),
-          // Active: vibrant cyan glow. Inactive: dimmed.
+          // Active: vibrant cyan glow. Inactive: dimmed, but lighter in light theme.
           boxShadow: isActive
             ? "0 0 0 1px rgba(34,211,238,0.35), 0 24px 48px rgba(0,0,0,0.6), 0 0 30px rgba(34,211,238,0.08)"
-            : "0 12px 32px rgba(0,0,0,0.4)",
-          filter: isActive ? "none" : "brightness(0.80)",
+            : (currentTheme === "dark"
+              ? "0 12px 32px rgba(0,0,0,0.4)"
+              : "0 8px 20px rgba(0,0,0,0.12)"),
+          filter: isActive ? "none" : (currentTheme === "dark" ? "brightness(0.80)" : "brightness(0.96)"),
           transition: "box-shadow 0.2s, filter 0.2s",
         }}
         className={cn(

@@ -1,13 +1,26 @@
 import { NextResponse } from 'next/server';
+import { fetchAllReposEnriched } from '@/lib/githubAggregator';
 import { fetchRepos } from '@/lib/github';
 
-export const revalidate = 60; // Cache for 60 seconds
+export const revalidate = 1800; // Cache for 30 minutes
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const enriched = searchParams.get('enriched') === 'true';
   const includeForks = searchParams.get('includeForks') === 'true';
 
   try {
+    if (enriched) {
+      // Return deeply enriched repos with activity, stack, metrics
+      const repos = await fetchAllReposEnriched('dev-asterix', !includeForks, !includeForks);
+      return NextResponse.json(repos, {
+        headers: {
+          'Cache-Control': 's-maxage=1800, stale-while-revalidate=3600'
+        }
+      });
+    }
+
+    // Return lightweight repo list (backward compatibility)
     const allRepos = await fetchRepos('dev-asterix');
 
     let filtered = allRepos;
@@ -32,7 +45,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json(mapped, {
       headers: {
-        'Cache-Control': 's-maxage=60, stale-while-revalidate=120'
+        'Cache-Control': 's-maxage=1800, stale-while-revalidate=3600'
       }
     });
   } catch (error) {
