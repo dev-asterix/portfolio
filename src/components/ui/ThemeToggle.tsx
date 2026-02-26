@@ -3,14 +3,24 @@
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
+import { useOSStore } from "@/store/useOSStore";
 
 export default function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
   const currentTheme = theme === 'system' ? resolvedTheme : theme;
+  const updateSettings = useOSStore((s) => s.updateSettings);
 
   return (
     <button
-      onClick={() => setTheme(currentTheme === "dark" ? "light" : "dark")}
+      onClick={() => {
+        const newScheme = currentTheme === "dark" ? "light" : "dark";
+        setTheme(newScheme);
+        try {
+          updateSettings({ colorScheme: newScheme });
+        } catch (e) {
+          // noop
+        }
+      }}
       className="relative flex items-center justify-center w-6 h-6 rounded-md hover:bg-foreground/10 transition-colors"
       aria-label="Toggle theme"
     >

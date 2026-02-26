@@ -5,7 +5,7 @@ import DesktopIcon from "./DesktopIcon";
 import Window from "./Window";
 import RepoList from "./RepoList";
 import { GitHubRepo } from "@/lib/github";
-import { Link, FolderGit2, HardDrive, Folder, RefreshCw, Monitor, FileTerminal, Settings, Info, Briefcase, ChevronRight, ExternalLink, Globe } from "lucide-react";
+import { Link, FolderGit2, HardDrive, Folder, RefreshCw, Monitor, FileTerminal, Settings, Info, Briefcase, ChevronRight, ExternalLink, Globe, FileText } from "lucide-react";
 import CommandPalette from "./CommandPalette";
 import TerminalApp from "../apps/TerminalApp";
 import FileExplorer from "../apps/FileExplorer";
@@ -21,6 +21,7 @@ import DesktopDragSelect from "./DesktopDragSelect";
 
 import { SystemInfo } from "@/lib/sysinfo";
 import { useOSStore } from "@/store/useOSStore";
+import { useKernel } from '@/lib/kernel';
 import ActivityMonitor from "../apps/ActivityMonitor";
 import NotificationCenter from "./NotificationCenter";
 
@@ -46,10 +47,16 @@ export default function DesktopManager({ repos, systemInfo }: DesktopManagerProp
   } = useOSStore();
 
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const kernel = useKernel();
 
   useEffect(() => {
     setRepos(repos);
   }, [repos, setRepos]);
+
+  // Initialize kernel on client mount
+  useEffect(() => {
+    kernel.init({ sysinfoIntervalMs: 10000 });
+  }, [kernel]);
 
   useEffect(() => {
     // Only set initial windows if none are open (e.g., first load)
@@ -129,6 +136,12 @@ export default function DesktopManager({ repos, systemInfo }: DesktopManagerProp
           label="Browser"
           icon={<Globe size={24} />}
           onClick={() => openWindow("browser", "Asterix Browser", 200, 180, { url: "about:newtab" })}
+        />
+        <DesktopIcon
+          id="icon-notepad"
+          label="Notepad"
+          icon={<FileText size={24} />}
+          onClick={() => openWindow("notepad", "Notepad", 240, 220)}
         />
         <DesktopIcon
           id="icon-links"

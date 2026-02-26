@@ -15,6 +15,7 @@ import { useOSStore, WindowType, NotificationType } from "@/store/useOSStore";
 import { resolveVFSPath } from "./vfs";
 import { resolveUrl } from "./browserEngine";
 import { useBrowserStore } from "@/store/useBrowserStore";
+import useKernelStore from '@/store/useKernelStore';
 
 export interface KernelOpenOpts {
   title?: string;
@@ -25,25 +26,27 @@ export interface KernelOpenOpts {
 
 export function useKernel() {
   const store = useOSStore();
+  const k = useKernelStore();
 
   /** Open a window via the kernel — all paths converge here */
   function openApp(type: WindowType, opts: KernelOpenOpts = {}) {
     const { title, x, y, metadata } = opts;
 
     const defaultTitles: Record<WindowType, string> = {
-      terminal:    "terminal — dev-asterix",
-      computer:    "My Computer",
-      settings:    "Personalization",
-      properties:  "Properties",
-      links:       "Quick Links",
-      status:      "Status",
-      browser:     "Browser",
-      project:     metadata?.repoName ? `${metadata.repoName} — project` : "Project",
-      preview:     metadata?.title ?? "Preview",
-      viewer:      metadata?.fileName ?? "Viewer",
-      notepad:     "Notepad",
+      terminal: "terminal — dev-asterix",
+      computer: "My Computer",
+      settings: "Personalization",
+      properties: "Properties",
+      links: "Quick Links",
+      status: "Status",
+      browser: "Browser",
+      project: metadata?.repoName ? `${metadata.repoName} — project` : "Project",
+      preview: metadata?.title ?? "Preview",
+      viewer: metadata?.fileName ?? "Viewer",
+      notepad: "Notepad",
       imageviewer: metadata?.alt ?? "Image Viewer",
-      monitor:     "Activity Monitor",
+      monitor: "Activity Monitor",
+      calculator: "Calculator"
     };
 
     store.openWindow(type, title ?? defaultTitles[type], x, y, metadata);
@@ -112,5 +115,42 @@ export function useKernel() {
     window.dispatchEvent(new CustomEvent("os-refresh-repos"));
   }
 
-  return { openApp, openBrowser, openPath, notify, killPid, killId, refreshRepos, store };
+  /** Set active repo in kernel context */
+  function setActiveRepo(repo?: string) {
+    k.setActiveRepo(repo);
+  }
+
+  /** Set foreground window id */
+  function setForegroundWindow(id?: string) {
+    k.setForegroundWindow(id);
+  }
+
+  /** Initialize kernel runtime (start polling tasks) */
+  function init(options: { sysinfoIntervalMs?: number } = {}) {
+    const interval = options.sysinfoIntervalMs ?? 10000;
+
+    // start sysinfo polling — keep id in closure so multiple inits don't stack
+    if (typeof window === 'undefined') return;
+    const already = (window as any).__asterix_kernel_inited;
+    if (already) return;
+    (window as any).__asterix_kernel_inited = true;
+
+    const run = async () => {
+      try {
+        const res = await fetch('/api/sysinfo/metrics');
+        if (res.ok) {
+          const payload = await res.json();
+          k.setSysinfo(payload);
+        }
+      } catch (e) {
+        // noop
+      }
+    };
+
+    // initial
+    run();
+    setInterval(run, interval);
+  }
+
+  return { openApp, openBrowser, openPath, notify, killPid, killId, refreshRepos, setActiveRepo, setForegroundWindow, init, store };
 }

@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import { useOSStore, SnapState } from "@/store/useOSStore";
+import useKernelStore from '@/store/useKernelStore';
 
 interface WindowProps {
   id: string;
@@ -59,6 +60,7 @@ export default function Window({
   const snapWindow = useOSStore((s) => s.snapWindow);
   const updateWindowPosition = useOSStore((s) => s.updateWindowPosition);
   const updateWindowSize = useOSStore((s) => s.updateWindowSize);
+  const setForegroundWindow = useKernelStore((s) => s.setForegroundWindow);
 
   // Local position/size — synced from store via initialX/Y
   const [pos, setPos] = useState({ x: initialX, y: initialY });
@@ -98,6 +100,7 @@ export default function Window({
     if ((e.target as HTMLElement).closest("button")) return;
     e.preventDefault();
     onFocus?.(id);
+    setForegroundWindow(id);
     dragStartRef.current = { mouseX: e.clientX, mouseY: e.clientY, winX: pos.x, winY: pos.y };
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }, [id, isSnapped, onFocus, pos]);
@@ -136,6 +139,7 @@ export default function Window({
     e.stopPropagation();
     e.preventDefault();
     onFocus?.(id);
+    setForegroundWindow(id);
     resizeRef.current = {
       edge, startX: e.clientX, startY: e.clientY,
       startW: size.w, startH: size.h,
@@ -223,7 +227,7 @@ export default function Window({
         }}
         exit={{ opacity: 0, scale: 0.92, filter: "blur(4px)" }}
         transition={{ duration: 0.22, ease: "easeOut" }}
-        onPointerDown={() => onFocus?.(id)}
+        onPointerDown={() => { onFocus?.(id); setForegroundWindow(id); }}
         style={{
           zIndex,
           ...(isSnapped ? snappedStyle : { x: pos.x, y: pos.y, width: size.w, height: size.h, position: "fixed" }),

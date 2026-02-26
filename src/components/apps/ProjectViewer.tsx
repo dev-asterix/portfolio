@@ -55,6 +55,15 @@ export default function ProjectViewer({ repoName }: ProjectViewerProps) {
     fetchData();
   }, [repoName]);
 
+  // Set active repo in kernel context while this viewer is mounted
+  useEffect(() => {
+    kernel.setActiveRepo(repoName);
+    return () => {
+      // clear active repo when leaving
+      kernel.setActiveRepo(undefined);
+    };
+  }, [kernel, repoName]);
+
   if (loading) {
     return (
       <div className="flex flex-col gap-4 p-4 animate-pulse">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import useKernelStore from '@/store/useKernelStore';
 import { motion, AnimatePresence } from "framer-motion";
 import { useOSStore, OSWindow, WindowType } from "@/store/useOSStore";
 import { Activity, Cpu, MemoryStick, X, RefreshCw, Terminal, HardDrive, Settings, Info, Link, FolderGit2, ExternalLink, FileText, Image } from "lucide-react";
@@ -160,7 +161,11 @@ export default function ActivityMonitor() {
 
   const totalMem = windows.reduce((a, w) => a + w.memoryUsage, 0);
   const totalCpu = Object.values(cpuMap).reduce((a, v) => a + v, 0);
-  const SYS_MEM = 8192; // simulated 8 GB
+
+  const lastSysinfo = useKernelStore((s) => s.lastSysinfo);
+  // sysinfo.memTotal/memUsed are bytes — convert to MB for display
+  const SYS_MEM = lastSysinfo ? Math.round((lastSysinfo.memTotal || 0) / (1024 * 1024)) : 8192;
+  const SYS_MEM_USED = lastSysinfo ? Math.round((lastSysinfo.memUsed || 0) / (1024 * 1024)) : totalMem;
 
   const sorted = [...windows].sort((a, b) => {
     if (sortKey === "pid") return a.pid - b.pid;

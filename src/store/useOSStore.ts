@@ -67,6 +67,7 @@ interface OSSettings {
   showForked: boolean;
   sortMode: 'last_updated' | 'stars' | 'name';
   compactMode: boolean;
+  colorScheme: 'system' | 'light' | 'dark';
 }
 
 
@@ -271,6 +272,7 @@ export const useOSStore = create<OSState>()(
       // Settings
       settings: {
         theme: 'carbon',
+        colorScheme: 'system',
         showArchived: false,
         showForked: false,
         sortMode: 'last_updated',
