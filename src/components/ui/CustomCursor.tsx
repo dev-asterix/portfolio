@@ -64,9 +64,9 @@ export default function CustomCursor() {
 
   return (
     <>
-      {/* Hide default cursor across the entire application globally */}
+      {/* Hide default cursor within the OS shell, allowing opt-out via data-native-cursor */}
       <style>{`
-        * {
+        [data-asterix-shell] *:not([data-native-cursor], [data-native-cursor] *) {
           cursor: none !important;
         }
       `}</style>

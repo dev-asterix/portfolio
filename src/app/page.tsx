@@ -4,6 +4,8 @@ import MenuBar from "@/components/ui/MenuBar";
 import DesktopManager from "@/components/ui/DesktopManager";
 import Taskbar from "@/components/ui/Taskbar";
 import BootWrapper from "@/components/ui/BootWrapper";
+import RootErrorBoundary from "@/components/ui/RootErrorBoundary";
+import BSODOverlay from "@/components/ui/BSODOverlay";
 
 export const revalidate = 3600; // revalidate every hour
 
@@ -14,7 +16,8 @@ export default async function Home() {
   ]);
 
   return (
-    <div className="flex min-h-screen flex-col font-sans bg-background text-foreground selection:bg-cyan-glowing/30 relative overflow-hidden">
+    <div data-asterix-shell className="flex min-h-screen flex-col font-sans bg-background text-foreground selection:bg-cyan-glowing/30 relative overflow-hidden">
+      <BSODOverlay />
       <MenuBar />
 
       {/* Subtle background glow for depth on the Desktop */}
@@ -28,7 +31,9 @@ export default async function Home() {
       <BootWrapper systemInfo={systemInfo}>
         {/* Desktop Environment - padded to avoid taskbar overlap */}
         <main className="flex-1 w-full h-full relative z-10 pt-10 pb-12">
-          <DesktopManager repos={repos} systemInfo={systemInfo} />
+          <RootErrorBoundary>
+            <DesktopManager repos={repos} systemInfo={systemInfo} />
+          </RootErrorBoundary>
         </main>
 
         {/* System Taskbar */}

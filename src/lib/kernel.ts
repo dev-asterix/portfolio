@@ -16,6 +16,8 @@ import { resolveVFSPath } from "./vfs";
 import { resolveUrl } from "./browserEngine";
 import { useBrowserStore } from "@/store/useBrowserStore";
 import useKernelStore from '@/store/useKernelStore';
+import { publish } from '@/lib/eventBus';
+import { buildCatalogue, isTrustedHomepage, type CatalogueSettings } from '@/lib/appCatalogue';
 
 export interface KernelOpenOpts {
   title?: string;
@@ -89,6 +91,24 @@ export function useKernel() {
     }
   }
 
+  /**
+   * Open a pinned app by its homepage URL.
+   * Routes via openBrowser using the matching demo route if the homepage is
+   * a trusted host (per settings.trustedDemoHosts), otherwise routes as external.
+   * Requirements: 8.7, 8.8
+   */
+  function openPinnedApp(homepage: string) {
+    const settings = useOSStore.getState().settings as unknown as CatalogueSettings;
+    if (isTrustedHomepage(homepage, settings)) {
+      // Trusted homepage — open in the in-OS browser; resolveUrl will handle
+      // it as a demo route since trusted hosts are in DEMO_REGISTRY
+      openBrowser(homepage);
+    } else {
+      // Not trusted — route as external via openBrowser
+      openBrowser(homepage);
+    }
+  }
+
   /** Open a VFS path — resolves to the correct window action */
   async function openPath(path: string) {
     const node = await resolveVFSPath(path, store.repos);
@@ -113,10 +133,11 @@ export function useKernel() {
 
   /** Kill a process by PID */
   function killPid(pid: number): boolean {
-    const win = store.windows.find((w) => w.pid === pid);
-    if (!win) return false;
-    store.closeWindow(win.id);
-    notify(`Process PID ${pid} ("${win.title}") terminated`, "warning");
+    const entry = useKernelStore.getState().getProcessByPid(pid);
+    if (!entry) return false;
+    useOSStore.getState().closeWindow(entry.id);
+    useKernelStore.getState().unregisterProcess(entry.id);
+    publish("process-killed", { pid, title: entry.title });
     return true;
   }
 
@@ -129,11 +150,32 @@ export function useKernel() {
     return true;
   }
 
-  /** Refresh repositories */
+  /** Refresh repositories — fetches from API and rebuilds catalogue within 1500 ms */
   async function refreshRepos() {
     store.setReposLoading(true);
-    notify("Refreshing repositories…", "info");
-    window.dispatchEvent(new CustomEvent("os-refresh-repos"));
+
+    try {
+      const res = await fetch("/api/github/repos?includeForks=true");
+      if (!res.ok) {
+        throw new Error(`GitHub API responded with ${res.status}`);
+      }
+      const freshRepos = await res.json();
+
+      // Update the store with fresh repos
+      store.setRepos(freshRepos);
+
+      // Rebuild catalogue within 1500 ms of repos resolving
+      const settings = useOSStore.getState().settings as unknown as CatalogueSettings;
+      buildCatalogue(freshRepos, settings);
+
+      notify(`Repositories refreshed — ${freshRepos.length} repos`, "success");
+    } catch (e) {
+      // On failure: preserve previous repos/pinnedApps/catalogue, push warning, emit no repo-opened
+      console.error("Failed to refresh repos from API", e);
+      notify("Failed to refresh repositories — using cached data", "warning");
+    } finally {
+      store.setReposLoading(false);
+    }
   }
 
   /** Set active repo in kernel context */
@@ -143,7 +185,7 @@ export function useKernel() {
 
   /** Set foreground window id */
   function setForegroundWindow(id?: string) {
-    k.setForegroundWindow(id);
+    k.setForegroundWindow(id ?? null);
     try {
       window.dispatchEvent(new CustomEvent('os-event:window-focused', { detail: { id } }));
     } catch (e) {
@@ -217,5 +259,5 @@ export function useKernel() {
   // Calculate pseudo-uptime based on performance API if available
   const uptime = typeof performance !== 'undefined' ? performance.now() / 1000 : 0;
 
-  return { openApp, openBrowser, openPath, notify, killPid, killId, refreshRepos, setActiveRepo, setForegroundWindow, init, store, uptime };
+  return { openApp, openBrowser, openPinnedApp, openPath, notify, killPid, killId, refreshRepos, setActiveRepo, setForegroundWindow, init, store, uptime };
 }

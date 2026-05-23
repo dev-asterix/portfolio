@@ -1,13 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Command } from "cmdk";
-import { FolderGit2, Terminal, Monitor, HardDrive, Settings, Search, LayoutList, RefreshCw, FileEdit, Activity } from "lucide-react";
+import { FolderGit2, Terminal, Monitor, HardDrive, Settings, Search, LayoutList, RefreshCw, FileEdit, Activity, Globe } from "lucide-react";
 import { useOSStore } from "@/store/useOSStore";
+import { buildCatalogue } from "@/lib/appCatalogue";
+import { useKernel } from "@/lib/kernel";
 
 export default function CommandPalette() {
   const [isOpen, setIsOpen] = useState(false);
-  const { repos, openWindow, updateSettings, setReposLoading, pushNotification } = useOSStore();
+  const { repos, openWindow, updateSettings, setReposLoading, pushNotification, settings } = useOSStore();
+  const kernel = useKernel();
+  const previousActiveElementRef = useRef<HTMLElement | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  const catalogue = useMemo(() => buildCatalogue(repos, settings), [repos, settings]);
 
   useEffect(() => {
     const down = (e: KeyboardEvent) => {
@@ -27,6 +34,48 @@ export default function CommandPalette() {
     };
   }, []);
 
+  // Save previous active element on open, restore on close
+  useEffect(() => {
+    if (isOpen) {
+      previousActiveElementRef.current = document.activeElement as HTMLElement | null;
+    } else if (previousActiveElementRef.current) {
+      previousActiveElementRef.current.focus();
+      previousActiveElementRef.current = null;
+    }
+  }, [isOpen]);
+
+  // Focus trap: trap Tab/Shift+Tab within the dialog
+  useEffect(() => {
+    if (!isOpen) return;
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const focusable = dialog.querySelectorAll<HTMLElement>(
+        'input, button, [tabindex]:not([tabindex="-1"]), a[href], textarea, select'
+      );
+      if (focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+
+      if (e.shiftKey) {
+        if (document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        }
+      } else {
+        if (document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen]);
+
   const runCommand = (command: () => void) => {
     setIsOpen(false);
     command();
@@ -39,7 +88,13 @@ export default function CommandPalette() {
       label="Global Command Palette"
       className="fixed inset-0 z-100 flex items-start justify-center pt-[15vh] bg-background/60 backdrop-blur-md animate-in fade-in duration-200"
     >
-      <div className="w-full max-w-2xl bg-background/95 border border-glass-border shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-xl overflow-hidden font-sans">
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Command Palette"
+        className="w-full max-w-2xl bg-background/95 border border-glass-border shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-xl overflow-hidden font-sans"
+      >
         <div className="flex items-center gap-3 px-4 py-3 border-b border-glass-border/50">
           <Search size={18} className="text-foreground/50" />
           <Command.Input
@@ -127,6 +182,29 @@ export default function CommandPalette() {
                   {repo.description && (
                     <span className="text-xs text-foreground/50 truncate max-w-[400px]">
                       {repo.description}
+                    </span>
+                  )}
+                </div>
+              </Command.Item>
+            ))}
+          </Command.Group>
+
+          <Command.Separator className="h-px bg-glass-border my-2 mx-[-8px]" />
+
+          <Command.Group heading="Live Apps" className="text-xs font-semibold text-foreground/50 px-2 py-1 **:[[cmdk-group-items]]:mt-2 **:[[cmdk-item]]:flex **:[[cmdk-item]]:items-center **:[[cmdk-item]]:gap-3 **:[[cmdk-item]]:px-3 **:[[cmdk-item]]:py-2.5 **:[[cmdk-item]]:rounded-md **:[[cmdk-item]]:text-sm **:[[cmdk-item]]:cursor-pointer">
+            {catalogue.map((entry) => (
+              <Command.Item
+                key={entry.id}
+                value={`${entry.name} ${entry.description} ${entry.topics.join(" ")}`}
+                onSelect={() => runCommand(() => kernel.openApp("repo-demo", { metadata: { repoId: entry.id, maximized: true } }))}
+                className="aria-selected:bg-foreground/10 aria-selected:text-cyan-glowing transition-colors text-foreground/90"
+              >
+                <Globe size={16} className="text-foreground/50 shrink-0" />
+                <div className="flex flex-col">
+                  <span className="font-medium">{entry.name}</span>
+                  {entry.description && (
+                    <span className="text-xs text-foreground/50 truncate max-w-[400px]">
+                      {entry.description}
                     </span>
                   )}
                 </div>

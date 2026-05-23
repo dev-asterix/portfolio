@@ -170,3 +170,15 @@ body {
     text-size-adjust: 100%;
   }
 }
+
+/* ── Reduce Motion (Req 9.7, 12.4) ────────────────────────────────────────── */
+/* When data-reduce-motion is set (via usePersonalization combining            */
+/* settings.reduceMotion and prefers-reduced-motion), disable transitions      */
+/* longer than 150ms and skip Framer Motion animations.                        */
+[data-reduce-motion="true"] *,
+[data-reduce-motion="true"] *::before,
+[data-reduce-motion="true"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}

@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Activity, GitBranch, Star, Zap, Code2, TrendingUp } from 'lucide-react';
+import { Activity, GitBranch, Star, Zap, Code2, TrendingUp, Inbox } from 'lucide-react';
 import ContributionGraph from './ContributionGraph';
+import { useOSStore } from '@/store/useOSStore';
 
 interface PortfolioMetricsData {
   totalRepos: number;
@@ -15,16 +16,24 @@ interface PortfolioMetricsData {
 }
 
 /**
- * System-level dashboard showing portfolio metrics
+ * System-level dashboard showing portfolio metrics.
+ * Aggregates OS_Store.repos into a single overview rendered within 500ms.
+ * Shows an empty-state message when repos are empty (Req 14.7).
  */
 export default function SystemDashboard() {
+  const repos = useOSStore(s => s.repos);
   const [metrics, setMetrics] = useState<PortfolioMetricsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Don't fetch if repos are empty — show empty state instead
+    if (!repos || repos.length === 0) {
+      setLoading(false);
+      return;
+    }
     fetchMetrics();
-  }, []);
+  }, [repos]);
 
   async function fetchMetrics() {
     try {
@@ -42,9 +51,26 @@ export default function SystemDashboard() {
     }
   }
 
+  // Empty-state: when OS_Store.repos is empty, render a message and don't crash (Req 14.7)
+  if (!repos || repos.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-4 font-mono text-center px-6">
+        <div className="p-4 rounded-full bg-foreground/5 border border-glass-border">
+          <Inbox size={28} className="text-foreground/30" />
+        </div>
+        <div>
+          <p className="text-base font-bold text-foreground/60">No repositories loaded</p>
+          <p className="text-xs text-foreground/40 mt-1">
+            Repository data is not available yet. The dashboard will populate once repos are fetched.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 animate-pulse">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4 animate-pulse p-6">
         {[...Array(8)].map((_, i) => (
           <div key={i} className="h-24 rounded-lg bg-foreground/10" />
         ))}

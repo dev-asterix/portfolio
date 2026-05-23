@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { GitHubRepo } from "@/lib/github";
-import { FolderGit2, Star, GitFork, ExternalLink, Activity, Archive, CheckCircle2, X } from "lucide-react";
+import { FolderGit2, Star, GitFork, ExternalLink, Activity, Archive, CheckCircle2, X, Pin, PinOff } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useOSStore } from "@/store/useOSStore";
+import { pinApp, unpinApp } from "@/lib/appCatalogue";
 
 // Basic GitHub language colors
 const languageColors: Record<string, string> = {
@@ -26,7 +27,7 @@ const languageColors: Record<string, string> = {
   Kotlin: "#A97BFF",
 };
 
-function RepositoryCard({ repo, compact }: { repo: GitHubRepo, compact: boolean }) {
+function RepositoryCard({ repo, compact, isPinned, onPin, onUnpin }: { repo: GitHubRepo, compact: boolean, isPinned: boolean, onPin: () => void, onUnpin: () => void }) {
   const openWindow = useOSStore(state => state.openWindow);
   const updatedAt = new Date(repo.updated_at);
   const daysSinceUpdate = (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60 * 24);
@@ -74,6 +75,22 @@ function RepositoryCard({ repo, compact }: { repo: GitHubRepo, compact: boolean 
           >
             <ExternalLink size={14} className="text-foreground/40 hover:text-cyan-glowing transition-colors" />
           </a>
+          {repo.homepage && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (isPinned) {
+                  onUnpin();
+                } else {
+                  onPin();
+                }
+              }}
+              className={`p-1 hover:bg-foreground/10 rounded transition-colors ${isPinned ? 'text-cyan-glowing' : 'text-foreground/40 hover:text-cyan-glowing'}`}
+              title={isPinned ? "Unpin from Desktop" : "Pin to Desktop"}
+            >
+              {isPinned ? <PinOff size={14} className="transition-colors" /> : <Pin size={14} className="transition-colors" />}
+            </button>
+          )}
         </div>
       </div>
 
@@ -128,9 +145,22 @@ function RepositoryCard({ repo, compact }: { repo: GitHubRepo, compact: boolean 
 }
 
 export default function RepoList() {
-  const { repos, settings } = useOSStore();
+  const { repos, settings, pushNotification } = useOSStore();
   const [langFilter, setLangFilter] = useState<string | null>(null);
   const [topicFilter, setTopicFilter] = useState<string | null>(null);
+
+  const pinnedApps: string[] = (settings as any).pinnedApps ?? [];
+
+  const handlePin = (repoName: string) => {
+    const result = pinApp(repoName);
+    if (!result.ok && result.reason === 'limit-reached') {
+      pushNotification('Cannot pin more than 24 apps to the desktop.', 'warning');
+    }
+  };
+
+  const handleUnpin = (repoName: string) => {
+    unpinApp(repoName);
+  };
 
   if (!repos || repos.length === 0) {
     return (
@@ -253,7 +283,14 @@ export default function RepoList() {
       ) : (
         <div className={`grid gap-4 ${settings.compactMode ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'}`}>
           {displayRepos.map((repo) => (
-            <RepositoryCard key={repo.id} repo={repo} compact={settings.compactMode} />
+            <RepositoryCard
+              key={repo.id}
+              repo={repo}
+              compact={settings.compactMode}
+              isPinned={pinnedApps.includes(repo.name)}
+              onPin={() => handlePin(repo.name)}
+              onUnpin={() => handleUnpin(repo.name)}
+            />
           ))}
         </div>
       )}

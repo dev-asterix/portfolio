@@ -3,6 +3,9 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SystemInfo } from "@/lib/sysinfo";
+import { clearTmp, hydrateTmp } from "@/lib/vfs";
+import { useOSStore } from "@/store/useOSStore";
+import { playCue } from "@/lib/sound";
 
 const BOOT_DONE_KEY = "asterix-boot-done";
 
@@ -90,6 +93,14 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
   useEffect(() => {
     const alreadyBooted = !!sessionStorage.getItem(BOOT_DONE_KEY);
     console.log("[Boot] Mounted. alreadyBooted=", alreadyBooted, "| sessionStorage key=", sessionStorage.getItem(BOOT_DONE_KEY));
+
+    // Clear /tmp on every boot start, then optionally restore from sessionStorage
+    clearTmp();
+    const settings = useOSStore.getState().settings;
+    if (settings.restoreVfsOnReload) {
+      hydrateTmp();
+    }
+
     setShouldShow(!alreadyBooted);
   }, []);
 
@@ -145,6 +156,8 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
         setTimeout(() => {
           sessionStorage.setItem(BOOT_DONE_KEY, "1");
           setPhase("done");
+          // Play boot sound cue (Req 7.10)
+          playCue("boot");
           // Give the 1.2s exit animation time to play
           setTimeout(() => {
             setVisible(false);

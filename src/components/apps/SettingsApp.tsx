@@ -1,8 +1,63 @@
 "use client";
 
-import { useOSStore } from "@/store/useOSStore";
+import { useOSStore, WindowType, WallpaperId } from "@/store/useOSStore";
 import { useTheme } from "next-themes";
-import { Settings, Palette, Eye, LayoutList, Check } from "lucide-react";
+import { Settings, Palette, Eye, LayoutList, Check, Monitor, Type, Rocket, Zap, Accessibility, PanelBottom, PanelLeft, Image, Volume2 } from "lucide-react";
+import { SoundProfile } from "@/store/useOSStore";
+
+// ── Wallpaper presets (Req 7.1) ─────────────────────────────────────────────────
+export const WALLPAPERS: { id: WallpaperId; name: string; gradient: string }[] = [
+  {
+    id: "carbon-grid",
+    name: "Carbon Grid",
+    gradient: "linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+  },
+  {
+    id: "abyss-aurora",
+    name: "Abyss Aurora",
+    gradient: "linear-gradient(135deg, #0d0221 0%, #1a0533 30%, #2d1b69 60%, #5b21b6 100%)",
+  },
+  {
+    id: "emerald-haze",
+    name: "Emerald Haze",
+    gradient: "linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 70%, #10b981 100%)",
+  },
+  {
+    id: "ocean-deep",
+    name: "Ocean Deep",
+    gradient: "linear-gradient(135deg, #0c1445 0%, #1e3a5f 40%, #1e40af 70%, #3b82f6 100%)",
+  },
+  {
+    id: "ruby-dusk",
+    name: "Ruby Dusk",
+    gradient: "linear-gradient(135deg, #1f0a0a 0%, #4a1010 30%, #7f1d1d 60%, #dc2626 100%)",
+  },
+  {
+    id: "amber-noon",
+    name: "Amber Noon",
+    gradient: "linear-gradient(135deg, #451a03 0%, #78350f 30%, #b45309 60%, #f59e0b 100%)",
+  },
+];
+
+// All registered WindowTypes for the Startup App selector
+const WINDOW_TYPES: { value: WindowType | 'empty-desktop'; label: string }[] = [
+  { value: 'empty-desktop', label: 'Empty Desktop' },
+  { value: 'terminal', label: 'Terminal' },
+  { value: 'computer', label: 'Computer' },
+  { value: 'status', label: 'Status' },
+  { value: 'links', label: 'Links' },
+  { value: 'settings', label: 'Settings' },
+  { value: 'properties', label: 'Properties' },
+  { value: 'browser', label: 'Browser' },
+  { value: 'project', label: 'Project' },
+  { value: 'preview', label: 'Preview' },
+  { value: 'viewer', label: 'Viewer' },
+  { value: 'notepad', label: 'Notepad' },
+  { value: 'imageviewer', label: 'Image Viewer' },
+  { value: 'monitor', label: 'Monitor' },
+  { value: 'welcome', label: 'Welcome' },
+  { value: 'repo-demo', label: 'Repo Demo' },
+];
 
 // [darkDot, lightDot] — hex swatches shown in the theme picker
 const THEME_SWATCHES: Record<string, { name: string; dark: string; light: string }> = {
@@ -80,6 +135,41 @@ export default function SettingsApp() {
                 </div>
                 {settings.theme === theme.id && (
                   <Check size={14} style={{ color: theme.accentColor }} />
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Wallpaper */}
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
+            <Image size={16} className="text-cyan-glowing" />
+            Wallpaper
+          </h3>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            {WALLPAPERS.map((wp) => (
+              <button
+                key={wp.id}
+                onClick={() => updateSettings({ wallpaper: wp.id })}
+                className={`relative flex flex-col items-center gap-2 p-2 rounded-lg border transition-all ${
+                  settings.wallpaper === wp.id
+                    ? 'border-cyan-glowing bg-foreground/5 shadow-[0_0_12px_rgba(0,229,255,0.15)]'
+                    : 'border-glass-border bg-foreground/5 hover:border-foreground/30 hover:bg-foreground/10'
+                }`}
+                aria-pressed={settings.wallpaper === wp.id}
+                aria-label={`Select ${wp.name} wallpaper`}
+              >
+                {/* Thumbnail preview */}
+                <div
+                  className="w-full aspect-video rounded-md border border-foreground/10"
+                  style={{ background: wp.gradient }}
+                />
+                <span className="text-xs font-medium text-foreground/80">{wp.name}</span>
+                {settings.wallpaper === wp.id && (
+                  <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-cyan-glowing flex items-center justify-center">
+                    <Check size={12} className="text-black" />
+                  </div>
                 )}
               </button>
             ))}
@@ -167,6 +257,163 @@ export default function SettingsApp() {
                 Uses smaller repository cards and tighter lists throughout the interface.
               </p>
             </div>
+          </div>
+        </div>
+
+        {/* Dock Position */}
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
+            <PanelBottom size={16} className="text-cyan-glowing" />
+            Dock Position
+          </h3>
+          <div className="flex flex-col gap-2 bg-foreground/5 p-3 rounded-lg border border-glass-border">
+            {(["bottom", "left"] as const).map((pos) => (
+              <label key={pos} className="flex items-center gap-3 p-2 rounded hover:bg-foreground/5 cursor-pointer transition-colors">
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${settings.dockPosition === pos ? "border-cyan-glowing" : "border-foreground/30"}`}>
+                  {settings.dockPosition === pos && <div className="w-2 h-2 rounded-full bg-cyan-glowing" />}
+                </div>
+                <div className="flex items-center gap-2">
+                  {pos === "bottom" ? <PanelBottom size={14} className="text-foreground/60" /> : <PanelLeft size={14} className="text-foreground/60" />}
+                  <span className="text-sm text-foreground/90 capitalize">{pos}</span>
+                </div>
+                <input
+                  type="radio"
+                  name="dockPosition"
+                  className="hidden"
+                  checked={settings.dockPosition === pos}
+                  onChange={() => updateSettings({ dockPosition: pos })}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* Font Scale */}
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
+            <Type size={16} className="text-cyan-glowing" />
+            Font Scale
+          </h3>
+          <div className="flex flex-col gap-2 bg-foreground/5 p-3 rounded-lg border border-glass-border">
+            <div className="flex items-center justify-between px-2">
+              <span className="text-xs text-foreground/50">0.85×</span>
+              <span className="text-sm font-medium text-foreground/90">{settings.fontScale.toFixed(2)}×</span>
+              <span className="text-xs text-foreground/50">1.25×</span>
+            </div>
+            <input
+              type="range"
+              min={0.85}
+              max={1.25}
+              step={0.05}
+              value={settings.fontScale}
+              onChange={(e) => updateSettings({ fontScale: parseFloat(e.target.value) })}
+              className="w-full h-2 rounded-full appearance-none cursor-pointer bg-foreground/20 accent-cyan-glowing"
+            />
+            <p className="text-xs text-foreground/50 px-2 leading-relaxed">
+              Adjusts the base font size across the entire interface.
+            </p>
+          </div>
+        </div>
+
+        {/* Startup App */}
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
+            <Rocket size={16} className="text-cyan-glowing" />
+            Startup App
+          </h3>
+          <div className="flex flex-col gap-2 bg-foreground/5 p-3 rounded-lg border border-glass-border">
+            <p className="text-xs text-foreground/50 px-2 leading-relaxed mb-1">
+              Choose which app opens automatically after boot.
+            </p>
+            <select
+              value={settings.startupApp}
+              onChange={(e) => updateSettings({ startupApp: e.target.value as WindowType | 'empty-desktop' })}
+              className="w-full p-2 rounded-lg bg-foreground/10 border border-glass-border text-sm text-foreground/90 cursor-pointer focus:outline-none focus:ring-2 focus:ring-cyan-glowing"
+            >
+              {WINDOW_TYPES.map((wt) => (
+                <option key={wt.value} value={wt.value}>
+                  {wt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Sound Profile (Req 7.9) */}
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
+            <Volume2 size={16} className="text-cyan-glowing" />
+            Sound Profile
+          </h3>
+          <div className="flex flex-col gap-2 bg-foreground/5 p-3 rounded-lg border border-glass-border">
+            <p className="text-xs text-foreground/50 px-2 leading-relaxed mb-1">
+              Controls audio cues for boot, shutdown, notifications, and window events.
+            </p>
+            {(["silent", "subtle", "arcade"] as const).map((profile) => (
+              <label key={profile} className="flex items-center gap-3 p-2 rounded hover:bg-foreground/5 cursor-pointer transition-colors">
+                <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${settings.soundProfile === profile ? "border-cyan-glowing" : "border-foreground/30"}`}>
+                  {settings.soundProfile === profile && <div className="w-2 h-2 rounded-full bg-cyan-glowing" />}
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-sm text-foreground/90 capitalize">{profile}</span>
+                  <span className="text-xs text-foreground/50">
+                    {profile === "silent" && "No audio output"}
+                    {profile === "subtle" && "Low-volume, soft tones"}
+                    {profile === "arcade" && "Retro-style sound effects"}
+                  </span>
+                </div>
+                <input
+                  type="radio"
+                  name="soundProfile"
+                  className="hidden"
+                  checked={settings.soundProfile === profile}
+                  onChange={() => updateSettings({ soundProfile: profile as SoundProfile })}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+
+        {/* System Behavior */}
+        <div className="flex flex-col gap-3">
+          <h3 className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
+            <Zap size={16} className="text-cyan-glowing" />
+            System Behavior
+          </h3>
+          <div className="flex flex-col gap-2 bg-foreground/5 p-3 rounded-lg border border-glass-border">
+            <label className="flex items-center justify-between p-2 rounded hover:bg-foreground/5 cursor-pointer transition-colors">
+              <div className="flex flex-col">
+                <span className="text-sm text-foreground/90">Skip Boot on Reload</span>
+                <span className="text-xs text-foreground/50">Bypass the BIOS animation on page reload</span>
+              </div>
+              <div className={`w-10 h-5 rounded-full p-0.5 transition-colors relative ${settings.skipBootOnReload ? "bg-cyan-glowing" : "bg-foreground/20"}`}>
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${settings.skipBootOnReload ? "translate-x-5" : "translate-x-0"}`} />
+              </div>
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={settings.skipBootOnReload}
+                onChange={(e) => updateSettings({ skipBootOnReload: e.target.checked })}
+              />
+            </label>
+
+            <div className="w-full h-px bg-glass-border" />
+
+            <label className="flex items-center justify-between p-2 rounded hover:bg-foreground/5 cursor-pointer transition-colors">
+              <div className="flex flex-col">
+                <span className="text-sm text-foreground/90">Reduce Motion</span>
+                <span className="text-xs text-foreground/50">Disable animations and transitions</span>
+              </div>
+              <div className={`w-10 h-5 rounded-full p-0.5 transition-colors relative ${settings.reduceMotion ? "bg-cyan-glowing" : "bg-foreground/20"}`}>
+                <div className={`w-4 h-4 rounded-full bg-white transition-transform ${settings.reduceMotion ? "translate-x-5" : "translate-x-0"}`} />
+              </div>
+              <input
+                type="checkbox"
+                className="hidden"
+                checked={settings.reduceMotion}
+                onChange={(e) => updateSettings({ reduceMotion: e.target.checked })}
+              />
+            </label>
           </div>
         </div>
       </div>
