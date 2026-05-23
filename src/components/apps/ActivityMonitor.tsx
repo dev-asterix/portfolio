@@ -1,46 +1,49 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import useKernelStore from '@/store/useKernelStore';
+import useKernelStore, { ProcessEntry } from '@/store/useKernelStore';
+import { subscribe } from "@/lib/eventBus";
 import { motion, AnimatePresence } from "framer-motion";
-import { useOSStore, OSWindow, WindowType } from "@/store/useOSStore";
-import { Activity, Cpu, MemoryStick, X, RefreshCw, Terminal, HardDrive, Settings, Info, Link, FolderGit2, ExternalLink, FileText, Image } from "lucide-react";
+import { useOSStore, WindowType } from "@/store/useOSStore";
+import { Activity, Cpu, MemoryStick, X, Terminal, HardDrive, Settings, Info, Link, FolderGit2, ExternalLink, FileText, Image } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 
 // ── Simulated CPU usage per process (drifts over time) ────────────────────────
-function useCpuTicker(windows: OSWindow[], procList?: { pid: number; cpu?: number }[]) {
+function useCpuTicker(processes: ProcessEntry[], procList?: { pid: number; cpu?: number }[]) {
   const [cpuMap, setCpuMap] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    // If we have a process list from the system, map CPU by PID -> window.pid
+    // If we have a process list from the system, map CPU by PID -> process.pid
     const seed: Record<string, number> = {};
-    windows.forEach((w) => {
-      const found = procList?.find((p) => p.pid === w.pid);
-      seed[w.id] = found ? (found.cpu ?? 0) : (Math.random() * 15);
+    processes.forEach((p) => {
+      const found = procList?.find((pl) => pl.pid === p.pid);
+      seed[p.id] = found ? (found.cpu ?? 0) : (p.cpu ?? Math.random() * 15);
     });
     setCpuMap(seed);
 
     const interval = setInterval(() => {
       setCpuMap((prev) => {
         const next = { ...prev };
-        windows.forEach((w) => {
-          const proc = procList?.find((p) => p.pid === w.pid);
+        processes.forEach((p) => {
+          const proc = procList?.find((pl) => pl.pid === p.pid);
           if (proc) {
-            next[w.id] = proc.cpu ?? next[w.id] ?? 0;
+            next[p.id] = proc.cpu ?? next[p.id] ?? 0;
+          } else if (p.cpu !== undefined) {
+            next[p.id] = p.cpu;
           } else {
-            const cur = next[w.id] ?? 5;
+            const cur = next[p.id] ?? 5;
             // Random walk: ±3%, clamped 0.1–40
             const delta = (Math.random() - 0.48) * 3;
-            next[w.id] = Math.max(0.1, Math.min(40, cur + delta));
+            next[p.id] = Math.max(0.1, Math.min(40, cur + delta));
           }
         });
         return next;
       });
-    }, 1200);
+    }, 1000);
 
     return () => clearInterval(interval);
-  }, [windows.length, procList?.length]); // re-seed when process count or procList changes
+  }, [processes.length, procList?.length]); // re-seed when process count or procList changes
 
   return cpuMap;
 }
@@ -85,8 +88,8 @@ function SystemBar({ label, value, max, color }: { label: string; value: number;
 }
 
 // ── Process row ───────────────────────────────────────────────────────────────
-function ProcessRow({ win, cpu, onKill }: { win: OSWindow; cpu: number; onKill: (id: string) => void }) {
-  const uptime = formatDistanceToNow(new Date(win.startedAt), { addSuffix: false });
+function ProcessRow({ proc, cpu, onKill }: { proc: ProcessEntry; cpu: number; onKill: (id: string) => void }) {
+  const uptime = formatDistanceToNow(new Date(proc.startedAt), { addSuffix: false });
 
   return (
     <motion.tr
@@ -99,17 +102,17 @@ function ProcessRow({ win, cpu, onKill }: { win: OSWindow; cpu: number; onKill: 
     >
       {/* PID */}
       <td className="px-3 py-2 font-mono text-[11px] text-foreground/50 w-12 shrink-0">
-        {win.pid}
+        {proc.pid}
       </td>
 
       {/* Name + icon */}
       <td className="px-2 py-2 min-w-0">
         <div className="flex items-center gap-2">
-          {TYPE_ICONS[win.type]}
-          <span className="font-mono text-xs text-foreground/90 truncate max-w-[160px]" title={win.title}>
-            {win.title}
+          {TYPE_ICONS[proc.type as WindowType]}
+          <span className="font-mono text-xs text-foreground/90 truncate max-w-[160px]" title={proc.title}>
+            {proc.title}
           </span>
-          {win.isMinimized && (
+          {proc.isMinimized && (
             <span className="text-[9px] font-mono text-foreground/40 border border-glass-border px-1 rounded shrink-0">
               Min
             </span>
@@ -138,7 +141,7 @@ function ProcessRow({ win, cpu, onKill }: { win: OSWindow; cpu: number; onKill: 
 
       {/* Memory */}
       <td className="px-2 py-2 w-20 font-mono text-[11px] text-foreground/60 text-right tabular-nums">
-        {win.memoryUsage} MB
+        {proc.memoryUsage} MB
       </td>
 
       {/* Uptime */}
@@ -149,8 +152,8 @@ function ProcessRow({ win, cpu, onKill }: { win: OSWindow; cpu: number; onKill: 
       {/* Kill */}
       <td className="px-2 py-2 w-10 text-right">
         <button
-          onClick={() => onKill(win.id)}
-          title={`Kill PID ${win.pid}`}
+          onClick={() => onKill(proc.id)}
+          title={`Kill PID ${proc.pid}`}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 hover:text-red-400 text-foreground/30 transition-all outline-none"
         >
           <X size={12} />
@@ -160,32 +163,74 @@ function ProcessRow({ win, cpu, onKill }: { win: OSWindow; cpu: number; onKill: 
   );
 }
 
+// ── Event ribbon entry ─────────────────────────────────────────────────────────
+interface EventRibbonEntry {
+  id: string;
+  type: string;
+  message: string;
+  timestamp: number;
+}
+
 // ── Activity Monitor ──────────────────────────────────────────────────────────
 export default function ActivityMonitor() {
-  const { windows, closeWindow, pushNotification } = useOSStore();
+  const { closeWindow, pushNotification } = useOSStore();
+  const processes = useKernelStore(s => Object.values(s.processes));
   const [sortKey, setSortKey] = useState<"pid" | "cpu" | "mem">("cpu");
+  const [eventRibbon, setEventRibbon] = useState<EventRibbonEntry[]>([]);
 
   const lastSysinfo = useKernelStore((s) => s.lastSysinfo);
   const cpuSource = lastSysinfo?.processes?.map((p) => ({ pid: p.pid, cpu: p.cpu })) ?? undefined;
-  const cpuMap = useCpuTicker(windows, cpuSource);
-  const totalMem = windows.reduce((a, w) => a + w.memoryUsage, 0);
+  const cpuMap = useCpuTicker(processes, cpuSource);
+  const totalMem = processes.reduce((a, p) => a + p.memoryUsage, 0);
   const totalCpu = Object.values(cpuMap).reduce((a, v) => a + v, 0);
   const events = useKernelStore((s) => s.events ?? []);
   // sysinfo.memTotal/memUsed are bytes — convert to MB for display
   const SYS_MEM = lastSysinfo ? Math.round((lastSysinfo.memTotal || 0) / (1024 * 1024)) : 8192;
   const SYS_MEM_USED = lastSysinfo ? Math.round((lastSysinfo.memUsed || 0) / (1024 * 1024)) : totalMem;
 
-  const sorted = [...windows].sort((a, b) => {
+  // Subscribe to process-killed and open-app events for the event ribbon (Req 4.9)
+  useEffect(() => {
+    const unsubKilled = subscribe("process-killed", (payload) => {
+      setEventRibbon((prev) => [
+        ...prev.slice(-19), // keep last 20
+        {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          type: "process-killed",
+          message: `Killed: ${payload.title} (PID ${payload.pid})`,
+          timestamp: Date.now(),
+        },
+      ]);
+    });
+
+    const unsubOpenApp = subscribe("open-app", (payload) => {
+      setEventRibbon((prev) => [
+        ...prev.slice(-19),
+        {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          type: "open-app",
+          message: `Opened: ${payload.title} (${payload.type})`,
+          timestamp: Date.now(),
+        },
+      ]);
+    });
+
+    return () => {
+      unsubKilled();
+      unsubOpenApp();
+    };
+  }, []);
+
+  const sorted = [...processes].sort((a, b) => {
     if (sortKey === "pid") return a.pid - b.pid;
     if (sortKey === "mem") return b.memoryUsage - a.memoryUsage;
     return (cpuMap[b.id] ?? 0) - (cpuMap[a.id] ?? 0);
   });
 
   const handleKill = (id: string) => {
-    const win = windows.find((w) => w.id === id);
-    if (!win) return;
+    const proc = processes.find((p) => p.id === id);
+    if (!proc) return;
     closeWindow(id);
-    pushNotification(`Process "${win.title}" (PID ${win.pid}) terminated`, "warning");
+    pushNotification(`Process "${proc.title}" (PID ${proc.pid}) terminated`, "warning");
   };
 
   const SortButton = ({ k, label }: { k: typeof sortKey; label: string }) => (
@@ -214,7 +259,7 @@ export default function ActivityMonitor() {
         </div>
         <div className="flex-1">
           <h2 className="text-base font-bold tracking-tight">Activity Monitor</h2>
-          <p className="text-xs text-foreground/50 font-mono">{windows.length} process{windows.length !== 1 ? "es" : ""} running</p>
+          <p className="text-xs text-foreground/50 font-mono">{processes.length} process{processes.length !== 1 ? "es" : ""} running</p>
         </div>
         <div className="flex items-center gap-1.5 pointer-events-auto">
           <SortButton k="cpu" label="CPU" />
@@ -222,6 +267,25 @@ export default function ActivityMonitor() {
           <SortButton k="pid" label="PID" />
         </div>
       </div>
+      {/* Event ribbon from subscribed events (process-killed, open-app) */}
+      {eventRibbon.length > 0 && (
+        <div className="mb-3 px-1">
+          <div className="text-[11px] font-mono text-foreground/60 mb-1">Event ribbon</div>
+          <div className="flex gap-2 items-center overflow-x-auto">
+            {eventRibbon.slice(-6).map((ev) => (
+              <div
+                key={ev.id}
+                className={cn(
+                  "text-[11px] font-mono bg-foreground/3 border border-glass-border rounded px-2 py-1 whitespace-nowrap",
+                  ev.type === "process-killed" ? "text-amber-400" : "text-emerald-400"
+                )}
+              >
+                {ev.message}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Recent kernel events */}
       <div className="mb-3 px-1">
         <div className="text-[11px] font-mono text-foreground/60 mb-1">Recent events</div>
@@ -240,7 +304,7 @@ export default function ActivityMonitor() {
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground/70 mb-1">
             <Cpu size={13} className="text-cyan-glowing" /> CPU Usage
           </div>
-          <SystemBar label="Total" value={totalCpu} max={40 * Math.max(1, windows.length)} color="bg-cyan-glowing" />
+          <SystemBar label="Total" value={totalCpu} max={40 * Math.max(1, processes.length)} color="bg-cyan-glowing" />
         </div>
         <div className="bg-foreground/5 rounded-lg p-3 border border-glass-border flex flex-col gap-2">
           <div className="flex items-center gap-2 text-xs font-semibold text-foreground/70 mb-1">
@@ -253,7 +317,7 @@ export default function ActivityMonitor() {
 
       {/* Process table */}
       <div className="flex-1 overflow-auto custom-scrollbar rounded-lg border border-glass-border bg-foreground/3">
-        {windows.length === 0 ? (
+        {processes.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-foreground/30 font-mono text-sm gap-2">
             <Activity size={28} className="opacity-30" />
             <span>No processes running</span>
@@ -272,11 +336,11 @@ export default function ActivityMonitor() {
             </thead>
             <tbody>
               <AnimatePresence mode="popLayout" initial={false}>
-                {sorted.map((win) => (
+                {sorted.map((proc) => (
                   <ProcessRow
-                    key={win.id}
-                    win={win}
-                    cpu={cpuMap[win.id] ?? 0}
+                    key={proc.id}
+                    proc={proc}
+                    cpu={cpuMap[proc.id] ?? 0}
                     onKill={handleKill}
                   />
                 ))}

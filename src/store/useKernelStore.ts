@@ -9,6 +9,7 @@ export interface ProcessEntry {
   startedAt: number;
   memoryUsage: number; // MB
   isMinimized?: boolean;
+  cpu?: number; // 0-100
 }
 
 export interface KernelTask {
@@ -26,9 +27,11 @@ export interface KernelEvent {
   meta?: any;
 }
 
+const MAX_EVENTS = 100;
+
 interface KernelState {
   activeRepo?: string;
-  foregroundWindowId?: string;
+  foregroundWindowId: string | null;
   processes: Record<string, ProcessEntry>;
   tasks: Record<string, KernelTask>;
   lastSysinfo?: SystemInfo | null;
@@ -37,7 +40,10 @@ interface KernelState {
   // actions
   registerProcess: (p: ProcessEntry) => void;
   unregisterProcess: (id: string) => void;
-  setForegroundWindow: (id?: string) => void;
+  updateProcess: (id: string, updates: Partial<ProcessEntry>) => void;
+  setForegroundWindow: (id: string | null) => void;
+  getProcessByPid: (pid: number) => ProcessEntry | undefined;
+  listProcesses: () => ProcessEntry[];
   setActiveRepo: (repo?: string) => void;
   setSysinfo: (s?: SystemInfo | null) => void;
   scheduleTask: (t: KernelTask) => void;
@@ -48,7 +54,7 @@ interface KernelState {
 
 export const useKernelStore = create<KernelState>((set, get) => ({
   activeRepo: undefined,
-  foregroundWindowId: undefined,
+  foregroundWindowId: null,
   processes: {},
   tasks: {},
   lastSysinfo: null,
@@ -66,9 +72,31 @@ export const useKernelStore = create<KernelState>((set, get) => ({
     });
   },
 
-  setForegroundWindow: (id?: string) => set(() => ({ foregroundWindowId: id })),
+  updateProcess: (id: string, updates: Partial<ProcessEntry>) => {
+    set((s) => {
+      const existing = s.processes[id];
+      if (!existing) return s;
+      return {
+        processes: {
+          ...s.processes,
+          [id]: { ...existing, ...updates },
+        },
+      };
+    });
+  },
+
+  setForegroundWindow: (id: string | null) => set(() => ({ foregroundWindowId: id })),
   setActiveRepo: (repo?: string) => set(() => ({ activeRepo: repo })),
   setSysinfo: (s?: SystemInfo | null) => set(() => ({ lastSysinfo: s ?? null })),
+
+  getProcessByPid: (pid: number) => {
+    const processes = get().processes;
+    return Object.values(processes).find((p) => p.pid === pid);
+  },
+
+  listProcesses: () => {
+    return Object.values(get().processes);
+  },
 
   scheduleTask: (t: KernelTask) => set((s) => ({ tasks: { ...s.tasks, [t.id]: t } })),
   removeTask: (id: string) => set((s) => {
@@ -76,9 +104,10 @@ export const useKernelStore = create<KernelState>((set, get) => ({
     delete copy[id];
     return { tasks: copy };
   }),
+
   pushEvent: (e: Omit<KernelEvent, 'id' | 'ts'>) => {
-    const ev: KernelEvent = { id: `${Date.now()}-${Math.random().toString(36).slice(2,8)}`, ts: Date.now(), ...e };
-    set((s) => ({ events: [...(s.events || []).slice(-50), ev] }));
+    const ev: KernelEvent = { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, ts: Date.now(), ...e };
+    set((s) => ({ events: [...s.events.slice(-(MAX_EVENTS - 1)), ev] }));
   },
   clearEvents: () => set({ events: [] }),
 }));

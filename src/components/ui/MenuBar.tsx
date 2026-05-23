@@ -4,7 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import { Wifi, Command, RotateCcw, Power, LayoutGrid, ExternalLink, BatteryMedium, BatteryCharging, Calendar } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { useOSStore } from "@/store/useOSStore";
+import { STORAGE_KEYS } from "@/lib/storageKeys";
 import ShutdownOverlay from "./ShutdownOverlay";
+import NotificationPanel from "./NotificationPanel";
 
 export default function MenuBar() {
   const [time, setTime] = useState<Date | null>(null);
@@ -17,6 +19,10 @@ export default function MenuBar() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const repos = useOSStore((s) => s.repos);
   const openWindow = useOSStore((s) => s.openWindow);
+
+  // Notification panel state
+  const [notifPanelOpen, setNotifPanelOpen] = useState(false);
+  const unreadCount = useOSStore((s) => s.notifications.filter(n => !n.read).length);
 
   // System-tray popover state (click/tap toggle for touch support)
   const [wifiOpen, setWifiOpen] = useState(false);
@@ -62,6 +68,8 @@ export default function MenuBar() {
   const handleShutdownDone = () => {
     console.log("[Reboot] Shutdown animation done — removing boot key and reloading");
     console.log("[Reboot] sessionStorage before remove:", sessionStorage.getItem("asterix-boot-done"));
+    // Set clean-shutdown flag so the next boot does not show the recovery prompt
+    localStorage.setItem(STORAGE_KEYS.cleanShutdown, "true");
     sessionStorage.removeItem("asterix-boot-done");
     console.log("[Reboot] sessionStorage after remove:", sessionStorage.getItem("asterix-boot-done"));
     window.location.reload();
@@ -95,6 +103,7 @@ export default function MenuBar() {
   return (
     <>
       {shuttingDown && <ShutdownOverlay onDone={handleShutdownDone} />}
+      <NotificationPanel isOpen={notifPanelOpen} onClose={() => setNotifPanelOpen(false)} />
       <div className="fixed top-0 left-0 right-0 h-8 px-4 flex items-center justify-between glass z-50 text-xs font-mono font-medium tracking-wide border-b border-glass-border select-none">
         {/* Left: App identity */}
         <div className="flex items-center gap-2">
@@ -106,7 +115,7 @@ export default function MenuBar() {
           <div ref={dropdownRef} className="relative flex items-center h-full">
             <button
               onClick={() => setAppsOpen(!appsOpen)}
-              className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors ${appsOpen ? 'bg-foreground/10 text-cyan-glowing' : 'hover:bg-foreground/5 text-foreground/80 hover:text-foreground'}`}
+              className={`flex items-center gap-1.5 px-2 py-1 rounded-md transition-colors focus-visible:ring-2 focus-visible:ring-cyan-glowing focus-visible:outline-none ${appsOpen ? 'bg-foreground/10 text-cyan-glowing' : 'hover:bg-foreground/5 text-foreground/80 hover:text-foreground'}`}
             >
               <LayoutGrid size={13} />
               <span className="font-semibold text-xs">Apps</span>
@@ -230,15 +239,25 @@ export default function MenuBar() {
             )}
           </div>
 
-          {/* Clock / Calendar */}
-          <div ref={calendarRef} className="relative flex items-center h-full px-1.5 cursor-pointer" onClick={() => setCalendarOpen(o => !o)}>
+          {/* Clock / Calendar — opens Notification Panel */}
+          <div ref={calendarRef} className="relative flex items-center h-full px-1.5 cursor-pointer" onClick={() => {
+            setNotifPanelOpen(o => !o);
+            setCalendarOpen(false);
+          }}>
             <span className="tabular-nums text-foreground/80 w-[68px] text-right select-none">
               {time
                 ? time.toLocaleTimeString([], { weekday: "short", hour: "2-digit", minute: "2-digit" }).replace(",", "")
                 : "..."}
             </span>
 
-            {/* Calendar Popover */}
+            {/* Unread badge */}
+            {unreadCount > 0 && (
+              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center px-1 rounded-full bg-red-500 text-white text-[9px] font-bold leading-none shadow-sm">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
+
+            {/* Calendar Popover (secondary — toggled via right-click or separate control if needed) */}
             {calendarOpen && (
               <div className="absolute top-full right-0 mt-1 w-64 max-w-[calc(100vw-16px)] bg-background/95 backdrop-blur-3xl border border-glass-border rounded-lg shadow-2xl p-3 block z-100 animate-in fade-in zoom-in-95 duration-100">
                 <div className="flex items-center gap-2 text-foreground/90 font-semibold border-b border-glass-border pb-2 mb-2">
@@ -284,7 +303,8 @@ export default function MenuBar() {
           <button
             onClick={handleReboot}
             title="Reboot"
-            className="p-1 rounded hover:bg-foreground/10 text-foreground/50 hover:text-cyan-glowing transition-colors shrink-0"
+            aria-label="Reboot system"
+            className="p-1 rounded hover:bg-foreground/10 text-foreground/50 hover:text-cyan-glowing transition-colors shrink-0 focus-visible:ring-2 focus-visible:ring-cyan-glowing focus-visible:outline-none"
           >
             <Power className="w-3.5 h-3.5" />
           </button>

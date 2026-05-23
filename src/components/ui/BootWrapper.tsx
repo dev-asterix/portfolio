@@ -5,6 +5,7 @@ import BootSequence from "./BootSequence";
 import LoginScreen from "./LoginScreen";
 import { AnimatePresence } from "framer-motion";
 import { SystemInfo } from "@/lib/sysinfo";
+import { publish } from "@/lib/eventBus";
 
 interface BootWrapperProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export default function BootWrapper({ children, systemInfo }: BootWrapperProps) 
       setIsLoggedOut(false);
       setTimeout(() => {
         window.dispatchEvent(new CustomEvent("os-post-boot"));
+        publish("boot-complete", { sessionRestored: false });
       }, 400);
     }
   };
@@ -35,6 +37,7 @@ export default function BootWrapper({ children, systemInfo }: BootWrapperProps) 
     sessionStorage.setItem("asterix-logged-in", "1");
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent("os-post-boot"));
+      publish("boot-complete", { sessionRestored: false });
     }, 800);
   };
 

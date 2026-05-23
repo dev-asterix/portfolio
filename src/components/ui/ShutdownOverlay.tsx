@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { playCue } from "@/lib/sound";
 
 interface ShutdownOverlayProps {
   onDone: () => void;
@@ -15,6 +16,8 @@ export default function ShutdownOverlay({ onDone }: ShutdownOverlayProps) {
   onDoneRef.current = onDone;
 
   useEffect(() => {
+    // Play shutdown sound cue (Req 7.10)
+    playCue("shutdown");
     const t = setTimeout(() => {
       console.log("[Shutdown] Timer fired — calling onDone");
       onDoneRef.current();

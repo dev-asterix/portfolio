@@ -2,8 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useOSStore } from "@/store/useOSStore";
+import useKernelStore from "@/store/useKernelStore";
 import { useKernel } from "@/lib/kernel";
-import { normalizePath, resolveVFSPath, getVFSChildren, vfsDisplayPath, VFSNode } from "@/lib/vfs";
+import { normalizePath, resolveVFSPath, getVFSChildren, vfsDisplayPath, VFSNode, getWritableArea, writeFile as vfsWriteFile, deleteFile as vfsDeleteFile, mkdir as vfsMkdir, readFile as vfsReadFile, VFSError } from "@/lib/vfs";
 import { Github, Linkedin, Mail } from "lucide-react";
 
 interface HistoryEntry {
@@ -90,6 +91,36 @@ export default function TerminalApp() {
 
     let output: React.ReactNode = null;
 
+    // ── Handle echo "text" > path (redirect) ──────────────────────────────
+    const echoRedirectMatch = trimmed.match(/^echo\s+"([^"]*)"\s*>\s*(.+)$/i) || trimmed.match(/^echo\s+'([^']*)'\s*>\s*(.+)$/i) || trimmed.match(/^echo\s+([^\s>]+)\s*>\s*(.+)$/i);
+    if (echoRedirectMatch) {
+      const text = echoRedirectMatch[1];
+      const targetRaw = echoRedirectMatch[2].trim();
+      const targetPath = normalizePath(targetRaw, cwd);
+
+      if (text.length > 10000) {
+        output = <span className="text-red-400">echo: content exceeds 10000 character limit</span>;
+        setHistory(prev => [...prev, { command: trimmed, output }]);
+        return;
+      }
+
+      const area = getWritableArea(targetPath);
+      if (!area) {
+        output = <span className="text-red-400">Permission denied</span>;
+        setHistory(prev => [...prev, { command: trimmed, output }]);
+        return;
+      }
+
+      try {
+        await vfsWriteFile(targetPath, text);
+        output = null;
+      } catch (err) {
+        output = <span className="text-red-400">{err instanceof VFSError ? err.message : "echo: write error"}</span>;
+      }
+      setHistory(prev => [...prev, { command: trimmed, output }]);
+      return;
+    }
+
     switch (command) {
       // ── help ──────────────────────────────────────────────────────────────
       case "help":
@@ -99,6 +130,9 @@ export default function TerminalApp() {
               ["ls", "list files / repos at current path"],
               ["cd <path>", "change directory (supports VFS paths)"],
               ["cat <file>", "read file contents"],
+              ["echo \"text\" > path", "write text to file (writable areas)"],
+              ["mkdir <path>", "create directory (writable areas)"],
+              ["rm <path>", "remove file (writable areas)"],
               ["tree", "list directory contents recursively"],
               ["pwd", "print working directory"],
               ["open <repo>", "open repository or file"],
@@ -115,6 +149,7 @@ export default function TerminalApp() {
               ["refresh", "refresh GitHub repositories"],
               ["clear", "clear terminal output"],
               ["whoami", "display current user"],
+              ["crash", "trigger kernel panic (BSOD)"],
               ["help", "show this message"],
             ].map(([cmd, desc]) => (
               <div key={cmd} className="grid grid-cols-[160px_1fr] gap-2">
@@ -261,7 +296,8 @@ export default function TerminalApp() {
 
       // ── ps ────────────────────────────────────────────────────────────────
       case "ps": {
-        if (windows.length === 0) {
+        const processList = useKernelStore.getState().listProcesses();
+        if (processList.length === 0) {
           output = <span className="text-foreground/50 italic">No processes running.</span>;
           break;
         }
@@ -270,12 +306,12 @@ export default function TerminalApp() {
             <div className="grid grid-cols-[40px_60px_160px_1fr] gap-x-3 text-foreground/40 text-[10px] font-semibold uppercase mb-1">
               <span>PID</span><span>Type</span><span>Title</span><span>Mem</span>
             </div>
-            {windows.map(w => (
-              <div key={w.id} className="grid grid-cols-[40px_60px_160px_1fr] gap-x-3 text-[11px] font-mono border-t border-glass-border/30 py-0.5">
-                <span className="text-foreground/50">{w.pid}</span>
-                <span className="text-cyan-glowing">{w.type}</span>
-                <span className="text-foreground/80 truncate">{w.title}</span>
-                <span className="text-foreground/50">{w.memoryUsage} MB</span>
+            {processList.map(p => (
+              <div key={p.id} className="grid grid-cols-[40px_60px_160px_1fr] gap-x-3 text-[11px] font-mono border-t border-glass-border/30 py-0.5">
+                <span className="text-foreground/50">{p.pid}</span>
+                <span className="text-cyan-glowing">{p.type}</span>
+                <span className="text-foreground/80 truncate">{p.title}</span>
+                <span className="text-foreground/50">{p.memoryUsage} MB</span>
               </div>
             ))}
           </div>
@@ -304,13 +340,60 @@ export default function TerminalApp() {
         output = <span className="text-foreground text-sm font-semibold">dev-asterix is not in the sudoers file. <span className="text-red-400">This incident will be reported.</span></span>;
         break;
 
+      // ── rm ────────────────────────────────────────────────────────────────
+      case "rm": {
+        const rmPath = args[1] ? normalizePath(args[1], cwd) : null;
+        if (!rmPath) {
+          output = <span className="text-red-400">Usage: rm &lt;path&gt;</span>;
+          break;
+        }
+        const rmArea = getWritableArea(rmPath);
+        if (!rmArea) {
+          output = <span className="text-red-400">Permission denied</span>;
+          break;
+        }
+        try {
+          await vfsDeleteFile(rmPath);
+          output = <span className="text-foreground/60">Removed {rmPath}</span>;
+        } catch (err) {
+          output = <span className="text-red-400">{err instanceof VFSError ? err.message : "rm: error"}</span>;
+        }
+        break;
+      }
+
+      // ── mkdir (VFS write) ─────────────────────────────────────────────────
+      case "mkdir": {
+        const mkdirPath = args[1] ? normalizePath(args[1], cwd) : null;
+        if (!mkdirPath) {
+          output = <span className="text-red-400">Usage: mkdir &lt;path&gt;</span>;
+          break;
+        }
+        const mkdirArea = getWritableArea(mkdirPath);
+        if (!mkdirArea) {
+          output = <span className="text-red-400">Permission denied</span>;
+          break;
+        }
+        // Check if path already exists
+        const existingNode = await resolveVFSPath(mkdirPath, repos);
+        if (existingNode) {
+          output = <span className="text-red-400">mkdir: cannot create directory: File exists</span>;
+          break;
+        }
+        try {
+          await vfsMkdir(mkdirPath);
+          output = <span className="text-foreground/60">Created directory {mkdirPath}</span>;
+        } catch (err) {
+          output = <span className="text-red-400">{err instanceof VFSError ? err.message : "mkdir: error"}</span>;
+        }
+        break;
+      }
+
       // ── crash ─────────────────────────────────────────────────────────────
       case "crash":
-        // BSOD trigger (assuming BSOD component is listening or kernel has a crash method)
-        // If there's no native kernel.crash(), we mock it by sending a custom event.
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("os-crash", { detail: { reason: "MANUALLY_INITIATED_CRASH" } }));
-        }
+        // Publish crash event via the typed event bus (Req 4.5, 12.12)
+        import("@/lib/eventBus").then((mod) => {
+          mod.publish("crash", { reason: "MANUALLY_INITIATED_CRASH" });
+        });
         output = <span className="text-red-500 animate-pulse font-bold">Initiating kernel panic...</span>;
         break;
 
@@ -408,6 +491,18 @@ export default function TerminalApp() {
           break;
         }
 
+        // Try VFS readFile for writable areas first
+        const catArea = getWritableArea(targetPath);
+        if (catArea) {
+          try {
+            const content = await vfsReadFile(targetPath);
+            output = <pre className="text-foreground/80 text-[10px] md:text-xs whitespace-pre-wrap font-mono mt-2">{content}</pre>;
+          } catch (err) {
+            output = <span className="text-red-400">cat: {err instanceof VFSError ? err.message : `${targetPath}: No such file`}</span>;
+          }
+          break;
+        }
+
         setHistory(prev => [...prev, { command: trimmed, output: <span className="text-foreground/50 italic animate-pulse">Loading...</span> }]);
         const node = await resolveVFSPath(targetPath, repos);
         setHistory(prev => prev.slice(0, -1));
@@ -425,8 +520,6 @@ export default function TerminalApp() {
         // If it's a file mapped inside a GitHub repo but doesn't have 'content' yet
         if (targetPath.startsWith("/home/dev-asterix/") && targetPath.split("/").length > 4 && !node.content) {
           try {
-            // Need to extract repo name and file path
-            // e.g., /home/dev-asterix/portfolio/README.md -> portfolio, README.md
             const parts = targetPath.split("/");
             const repoName = parts[3];
             const filePath = parts.slice(4).join("/");
@@ -555,7 +648,7 @@ export default function TerminalApp() {
     }
 
     setHistory(prev => [...prev, { command: trimmed, output }]);
-  }, [cwd, repos, windows, kernel]);
+  }, [cwd, repos, kernel]);
 
   // Auto-run neofetch on terminal open
   const initialized = useRef(false);

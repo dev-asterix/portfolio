@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useOSStore, WindowType } from "@/store/useOSStore";
 import { Terminal, HardDrive, Settings, Info, Link, FolderGit2, ExternalLink, FileText, Image, Activity, LayoutDashboard, Globe } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { cn, useIsMobile } from "@/lib/utils";
 
 const appIcons: Record<WindowType, React.ReactNode> = {
@@ -43,6 +43,13 @@ export default function Taskbar() {
 
   // Track minimized-all state (show desktop)
   const [allMinimized, setAllMinimized] = useState(false);
+
+  // Minimized windows sorted by most-recently-minimized first (for dock-peek)
+  const minimizedWindows = useMemo(() => {
+    return windows
+      .filter(w => w.isMinimized)
+      .sort((a, b) => (b.minimizedAt ?? 0) - (a.minimizedAt ?? 0));
+  }, [windows]);
 
   // Real-time clock
   useEffect(() => {
@@ -105,7 +112,35 @@ export default function Taskbar() {
   const activeType = windows.find(w => w.id === activeWindowId)?.type ?? null;
 
   return (
-    <div className="fixed bottom-4 left-0 right-0 z-50 flex items-center justify-center pointer-events-none">
+    <div className="fixed bottom-4 left-0 right-0 z-50 flex flex-col items-center justify-end pointer-events-none" data-taskbar>
+      {/* ── Mobile Dock-Peek: minimized windows row ── */}
+      {isMobile && minimizedWindows.length > 0 && (
+        <div className="w-full flex items-center justify-center pointer-events-auto mb-2 px-4">
+          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none max-w-[calc(100vw-32px)] px-2 py-1.5 rounded-xl border border-glass-border bg-background/60 backdrop-blur-md">
+            {minimizedWindows.map((win) => (
+              <motion.button
+                key={win.id}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => focusWindow(win.id)}
+                title={win.title}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-glass-border bg-foreground/5 hover:bg-foreground/10 transition-colors shrink-0"
+              >
+                <span className="text-foreground/60 shrink-0">
+                  {appIcons[win.type] ?? <Terminal size={14} />}
+                </span>
+                <span className="text-[11px] font-mono text-foreground/70 truncate max-w-[80px]">
+                  {win.title}
+                </span>
+              </motion.button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Dock ── */}
       <div className={cn(
         "flex items-center gap-2 pointer-events-auto",
         isMobile && "overflow-x-auto scrollbar-none max-w-[calc(100vw-32px)] px-2",
@@ -120,9 +155,11 @@ export default function Taskbar() {
               whileTap={{ scale: 0.95 }}
               onClick={() => handleDockClick(app.type as WindowType, app.label)}
               title={app.label}
+              {...(isRunning ? { "data-taskbar-app-button": "" } : {})}
               className={cn(
                 "relative w-11 h-11 flex items-center justify-center rounded-xl transition-transform text-foreground/60 border border-glass-border bg-transparent",
                 "hover:shadow-lg hover:ring-2 hover:ring-cyan-glowing/20",
+                "focus-visible:ring-2 focus-visible:ring-cyan-glowing focus-visible:outline-none",
                 isActive ? "text-cyan-glowing ring-2 ring-cyan-glowing/30 shadow" : "text-foreground/60 hover:text-foreground/80"
               )}
             >

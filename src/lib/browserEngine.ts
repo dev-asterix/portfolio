@@ -23,7 +23,18 @@ export const DEMO_REGISTRY: Record<string, string> = {
   drawdown: "https://drawdown.astrx.dev",
   pgstudio:  "https://pgstudio.astrx.dev",
   personal_portfolio:  "https://me.astrx.dev",
+  andthetimeis: "https://timeis.astrx.dev",
 };
+
+// ── Trusted-host check ───────────────────────────────────────────────────────
+export function isTrustedDemoHost(url: string): boolean {
+  try {
+    const host = new URL(url).host;
+    return Object.values(DEMO_REGISTRY).some(v => {
+      try { return new URL(v).host === host; } catch { return false; }
+    });
+  } catch { return false; }
+}
 
 // ── Static internal path table ───────────────────────────────────────────────
 export const INTERNAL_ROUTES: Record<string, InternalPath> = {

@@ -1,18 +1,19 @@
 "use client";
 
 import { useOSStore } from "@/store/useOSStore";
-import { SystemInfo } from "@/lib/sysinfo";
-import { formatDistanceToNow } from "date-fns";
-import { Github, Monitor, Box, Star, Clock, Cpu } from "lucide-react";
+import { useKernelStore } from "@/store/useKernelStore";
+import { Github, Monitor, Box, Star, Clock, Cpu, Pin, Activity, Radio } from "lucide-react";
 
 export default function PropertiesApp() {
   const { repos, reposLoading, settings, systemInfo } = useOSStore();
+  const processes = useKernelStore((s) => s.listProcesses());
+  const events = useKernelStore((s) => s.events);
 
   // Aggregate stats
   const totalRepos = repos.length;
   const totalStars = repos.reduce((acc, repo) => acc + repo.stargazers_count, 0);
 
-  // Most used language
+  // Primary language: largest aggregated count across repos
   const languageCounts = repos.reduce((acc, repo) => {
     if (repo.language) {
       acc[repo.language] = (acc[repo.language] || 0) + 1;
@@ -20,22 +21,31 @@ export default function PropertiesApp() {
     return acc;
   }, {} as Record<string, number>);
 
-  let mostUsedLanguage = "Unknown";
+  let primaryLanguage = "N/A";
   let maxCount = 0;
   Object.entries(languageCounts).forEach(([lang, count]) => {
     if (count > maxCount) {
-      mostUsedLanguage = lang;
+      primaryLanguage = lang;
       maxCount = count;
     }
   });
 
-  // Last commit date (using pushed_at or updated_at)
-  const lastUpdate = repos.length > 0
+  // Last activity: most recent pushed_at, formatted YYYY-MM-DD
+  const lastActivity = repos.length > 0
     ? repos.reduce((latest, repo) => {
-      const d1 = new Date(repo.pushed_at || repo.updated_at).getTime();
-      return d1 > latest ? d1 : latest;
-    }, 0)
+        const d1 = new Date(repo.pushed_at || repo.updated_at).getTime();
+        return d1 > latest ? d1 : latest;
+      }, 0)
     : 0;
+
+  const lastActivityFormatted = lastActivity
+    ? new Date(lastActivity).toISOString().split("T")[0]
+    : "N/A";
+
+  // Kernel / OS metrics
+  const pinnedAppsCount = settings.pinnedApps?.length ?? 0;
+  const activeProcesses = processes.length;
+  const eventBusActivity = events.length;
 
   const fallbackSystemInfo = systemInfo || {
     osName: "dev-asterix OS",
@@ -104,19 +114,40 @@ export default function PropertiesApp() {
                   <span className="font-mono text-amber-400">{totalStars}</span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
-                  <span className="text-foreground/60">Primary Stack</span>
+                  <span className="text-foreground/60">Primary Language</span>
                   <span className="font-sans font-medium px-2 py-0.5 rounded-full bg-foreground/10 text-xs">
-                    {mostUsedLanguage}
+                    {primaryLanguage}
                   </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-foreground/60 flex items-center gap-1.5"><Clock size={14} /> Last Activity</span>
-                  <span className="font-mono text-xs">
-                    {lastUpdate ? formatDistanceToNow(lastUpdate, { addSuffix: true }) : "N/A"}
-                  </span>
+                  <span className="font-mono text-xs">{lastActivityFormatted}</span>
                 </div>
               </>
             )}
+          </div>
+        </div>
+
+        {/* Kernel Metrics */}
+        <div className="flex flex-col gap-4">
+          <h3 className="text-sm font-semibold text-foreground/80 flex items-center gap-2">
+            <Activity size={16} className="text-emerald-burnt" />
+            Kernel Metrics
+          </h3>
+
+          <div className="bg-foreground/5 p-4 rounded-lg border border-glass-border flex flex-col gap-3">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-foreground/60 flex items-center gap-1.5"><Pin size={14} /> Pinned Apps</span>
+              <span className="font-mono text-cyan-glowing">{pinnedAppsCount}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-foreground/60 flex items-center gap-1.5"><Cpu size={14} /> Active Processes</span>
+              <span className="font-mono text-emerald-400">{activeProcesses}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-foreground/60 flex items-center gap-1.5"><Radio size={14} /> Event Bus Activity</span>
+              <span className="font-mono text-purple-400">{eventBusActivity}</span>
+            </div>
           </div>
         </div>
       </div>

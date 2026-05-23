@@ -2,7 +2,7 @@
  * dev-asterix OS — Browser State Store
  *
  * Per-window browser state: tabs, navigation history, active tab.
- * Deliberately NOT persisted — tabs live as long as the window is open.
+ * Persisted to sessionStorage["asterix-browser-session"] within 500 ms of change.
  * State is keyed by OSWindow.id so multiple browser windows are independent.
  *
  * Architecture note: this is intentionally separate from useOSStore.
@@ -10,6 +10,7 @@
  */
 
 import { create } from "zustand";
+import { STORAGE_KEYS } from "@/lib/storageKeys";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -53,7 +54,18 @@ interface BrowserState {
   getActiveTab: (windowId: string) => BrowserTab | undefined;
   canGoBack: (windowId: string) => boolean;
   canGoForward: (windowId: string) => boolean;
+
+  // Reset
+  resetAll: () => void;
 }
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+
+/** Maximum number of history entries retained per tab (Req 5.3) */
+const MAX_HISTORY_PER_TAB = 50;
+
+/** Debounce interval for sessionStorage persistence (ms) */
+const PERSIST_DEBOUNCE_MS = 500;
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -85,10 +97,58 @@ function patchActiveTab(
   };
 }
 
+// ── Persistence ───────────────────────────────────────────────────────────────
+
+/** Serialisable shape written to sessionStorage */
+interface PersistedBrowserSession {
+  schemaVersion: 1;
+  instances: Record<string, BrowserInstance>;
+}
+
+function hydrateInstances(): Record<string, BrowserInstance> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = sessionStorage.getItem(STORAGE_KEYS.browserSession);
+    if (!raw) return {};
+    const parsed: PersistedBrowserSession = JSON.parse(raw);
+    if (parsed.schemaVersion !== 1 || !parsed.instances) return {};
+    // Cap per-tab history at MAX_HISTORY_PER_TAB on load
+    for (const inst of Object.values(parsed.instances)) {
+      for (const tab of inst.tabs) {
+        if (tab.history.length > MAX_HISTORY_PER_TAB) {
+          tab.history = tab.history.slice(tab.history.length - MAX_HISTORY_PER_TAB);
+          tab.histIndex = Math.min(tab.histIndex, tab.history.length - 1);
+        }
+      }
+    }
+    return parsed.instances;
+  } catch {
+    // Corrupt data — start fresh
+    sessionStorage.removeItem(STORAGE_KEYS.browserSession);
+    return {};
+  }
+}
+
+let persistTimer: ReturnType<typeof setTimeout> | null = null;
+
+function schedulePersist(instances: Record<string, BrowserInstance>): void {
+  if (typeof window === "undefined") return;
+  if (persistTimer !== null) clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    persistTimer = null;
+    try {
+      const payload: PersistedBrowserSession = { schemaVersion: 1, instances };
+      sessionStorage.setItem(STORAGE_KEYS.browserSession, JSON.stringify(payload));
+    } catch {
+      // Quota exceeded — silently skip; Req 5.12 handled at OS level
+    }
+  }, PERSIST_DEBOUNCE_MS);
+}
+
 // ── Store ─────────────────────────────────────────────────────────────────────
 
 export const useBrowserStore = create<BrowserState>()((set, get) => ({
-  instances: {},
+  instances: hydrateInstances(),
 
   // ── Lifecycle ──────────────────────────────────────────────────────────────
 
@@ -158,7 +218,11 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
     set(s => ({
       instances: patchInstance(s.instances, windowId, inst =>
         patchActiveTab(inst, tab => {
-          const history = [...tab.history.slice(0, tab.histIndex + 1), displayUrl];
+          // Truncate forward history, append new URL, then cap at 50 entries
+          let history = [...tab.history.slice(0, tab.histIndex + 1), displayUrl];
+          if (history.length > MAX_HISTORY_PER_TAB) {
+            history = history.slice(history.length - MAX_HISTORY_PER_TAB);
+          }
           return { ...tab, url: displayUrl, title, history, histIndex: history.length - 1 };
         })
       ),
@@ -203,4 +267,16 @@ export const useBrowserStore = create<BrowserState>()((set, get) => ({
     const tab = get().getActiveTab(windowId);
     return !!tab && tab.histIndex < tab.history.length - 1;
   },
+
+  // ── Reset (used by useResetAppState) ───────────────────────────────────────
+
+  resetAll: () => {
+    set({ instances: {} });
+  },
 }));
+
+// ── Auto-persist on state change ──────────────────────────────────────────────
+
+useBrowserStore.subscribe((state) => {
+  schedulePersist(state.instances);
+});

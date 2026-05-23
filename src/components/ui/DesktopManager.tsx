@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import DesktopIcon from "./DesktopIcon";
 import Window from "./Window";
 import RepoList from "./RepoList";
@@ -44,8 +44,13 @@ import DesktopHint from "./DesktopHint";
 import { SystemInfo } from "@/lib/sysinfo";
 import { useOSStore } from "@/store/useOSStore";
 import { useKernel } from "@/lib/kernel";
+import { useProcessSync } from "@/hooks/useProcessSync";
+import { useWindowManager } from "@/hooks/useWindowManager";
+import { useCrashSnapshot } from "@/hooks/useCrashSnapshot";
+import { useStartupApp } from "@/hooks/useStartupApp";
 import ActivityMonitor from "../apps/ActivityMonitor";
 import NotificationCenter from "./NotificationCenter";
+import { buildCatalogue, type AppCatalogueEntry } from "@/lib/appCatalogue";
 
 interface DesktopManagerProps {
   repos: GitHubRepo[];
@@ -68,9 +73,20 @@ export default function DesktopManager({
     snapWindow,
     restoreWindow,
     setRepos,
-    pushNotification,
     setSystemInfo,
   } = useOSStore();
+
+  // Activate process registry so kernel processes stay in sync for the entire session
+  useProcessSync();
+
+  // Activate global window manager keyboard shortcuts (Cmd+W, Cmd+M, Alt+Tab, etc.)
+  useWindowManager();
+
+  // Subscribe to crash events and write pre-crash snapshot to localStorage
+  useCrashSnapshot();
+
+  // Open the configured startup app when boot-complete fires (Req 7.7, 7.8)
+  useStartupApp();
 
   const [contextMenu, setContextMenu] = useState<{
     x: number;
@@ -78,6 +94,22 @@ export default function DesktopManager({
   } | null>(null);
   const isMobile = useIsMobile();
   const kernel = useKernel();
+  const settings = useOSStore((s) => s.settings);
+
+  // Catalogue-driven pinned/featured entries (Req 8.6, 10.2)
+  const pinnedEntries = useMemo(() => {
+    const cat = buildCatalogue(repos, settings);
+    const pinned = settings.pinnedApps ?? [];
+    if (pinned.length > 0) {
+      return pinned
+        .map((id) => cat.find((e) => e.id === id))
+        .filter(Boolean) as AppCatalogueEntry[];
+    }
+    // Fallback: use featuredAppIds
+    return (settings.featuredAppIds ?? [])
+      .map((id) => cat.find((e) => e.id === id))
+      .filter(Boolean) as AppCatalogueEntry[];
+  }, [repos, settings]);
 
   // Long-press → context menu (mobile equivalent of right-click)
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -122,16 +154,29 @@ export default function DesktopManager({
   }, []);
 
   useEffect(() => {
-    // Only set initial windows if none are open (e.g., first load)
-    if (useOSStore.getState().windows.length === 0) {
-      const screenW = window.innerWidth;
-      const screenH = window.innerHeight;
+    // Wait for zustand persist rehydration to complete before opening initial window.
+    // Zustand persist rehydrates asynchronously; we use onFinishHydration to ensure
+    // we don't race with the rehydration overwriting our newly opened window.
+    const openInitialWindow = () => {
+      if (useOSStore.getState().windows.length === 0) {
+        const screenW = window.innerWidth;
+        const screenH = window.innerHeight;
+        const startX = Math.max(20, (screenW - 1000) / 2);
+        const startY = Math.max(20, (screenH - 850) / 2);
+        openWindow("welcome", "Welcome to Asterix OS", startX, startY);
+      }
+    };
 
-      // Centered welcome window (width 1000, height 850 roughly)
-      const startX = Math.max(20, (screenW - 1000) / 2);
-      const startY = Math.max(20, (screenH - 850) / 2);
-
-      openWindow("welcome", "Welcome to Asterix OS", startX, startY);
+    // Check if already hydrated (e.g. SSR or sync storage)
+    if ((useOSStore as any).persist?.hasHydrated?.()) {
+      openInitialWindow();
+    } else if ((useOSStore as any).persist?.onFinishHydration) {
+      const unsub = (useOSStore as any).persist.onFinishHydration(openInitialWindow);
+      return unsub;
+    } else {
+      // Fallback: small delay to let rehydration complete
+      const timer = setTimeout(openInitialWindow, 100);
+      return () => clearTimeout(timer);
     }
   }, [openWindow]);
 
@@ -143,30 +188,6 @@ export default function DesktopManager({
   const closeContextMenu = () => {
     if (contextMenu) setContextMenu(null);
   };
-
-  useEffect(() => {
-    const handleRefresh = async () => {
-      try {
-        const res = await fetch("/api/github/repos?includeForks=true");
-        if (res.ok) {
-          const freshRepos = await res.json();
-          setRepos(freshRepos);
-          pushNotification(
-            `Repositories refreshed — ${freshRepos.length} repos`,
-            "success",
-          );
-        } else {
-          pushNotification("Failed to refresh repositories", "error");
-        }
-      } catch (e) {
-        console.error("Failed to refresh repos from API", e);
-        pushNotification("Network error refreshing repositories", "error");
-      }
-    };
-
-    window.addEventListener("os-refresh-repos", handleRefresh);
-    return () => window.removeEventListener("os-refresh-repos", handleRefresh);
-  }, [setRepos, pushNotification]);
 
   return (
     <div
@@ -244,60 +265,27 @@ export default function DesktopManager({
               Featured Apps
             </h3>
             <div className="grid grid-cols-4 gap-3">
-              <DesktopIcon
-                id="icon-pgstudio"
-                label="pgStudio"
-                icon={
-                  <img
-                    src="https://github.com/dev-asterix/PgStudio/blob/main/docs/assets/postgres-explorer.png?raw=true"
-                    className="w-6 h-6 object-contain filter drop-shadow opacity-90"
-                    alt="pgStudio"
-                  />
-                }
-                onClick={() =>
-                  openWindow("repo-demo", "pgStudio — Interactive Demo", 0, 0, {
-                    repoId: "pgStudio",
-                    maximized: true,
-                  })
-                }
-              />
-              <DesktopIcon
-                id="icon-drawdown"
-                label="drawdown"
-                icon={
-                  <img
-                    src="https://github.com/dev-asterix/drawdown/blob/main/public/logo.png?raw=true"
-                    className="w-6 h-6 object-contain filter drop-shadow opacity-90"
-                    alt="drawdown"
-                  />
-                }
-                onClick={() =>
-                  openWindow("repo-demo", "drawdown — Interactive Demo", 0, 0, {
-                    repoId: "drawdown",
-                    maximized: true,
-                  })
-                }
-              />
-              <DesktopIcon
-                id="icon-andthetimeis"
-                label="and-the-time-is"
-                icon={
-                  <img
-                    src="https://github.com/dev-asterix/and-the-time-is/blob/main/public/favicon.ico?raw=true"
-                    className="w-6 h-6 object-contain filter drop-shadow opacity-90"
-                    alt="and-the-time-is"
-                  />
-                }
-                onClick={() =>
-                  openWindow(
-                    "repo-demo",
-                    "and-the-time-is — Interactive Demo",
-                    0,
-                    0,
-                    { repoId: "and-the-time-is", maximized: true },
-                  )
-                }
-              />
+              {pinnedEntries.map((entry) => (
+                <DesktopIcon
+                  key={entry.id}
+                  id={`icon-${entry.id}`}
+                  label={entry.name}
+                  icon={entry.icon ? (
+                    <img
+                      src={entry.icon}
+                      alt={entry.name}
+                      className="w-7 h-7 object-contain"
+                    />
+                  ) : (
+                    <Globe size={24} className="text-cyan-glowing" />
+                  )}
+                  onClick={() =>
+                    openWindow("repo-demo", `${entry.name} — Interactive Demo`, {
+                      metadata: { repoId: entry.id, maximized: true },
+                    })
+                  }
+                />
+              ))}
             </div>
           </div>
         </div>
@@ -362,68 +350,37 @@ export default function DesktopManager({
       {/* Ambient idle hint — appears after 8 s of inactivity, desktop only */}
       <DesktopHint />
 
-      {/* Featured Apps Widget (Desktop) */}
-      {!isMobile && (
+      {/* Featured Apps Widget (Desktop) — catalogue-driven */}
+      {!isMobile && pinnedEntries.length > 0 && (
         <div className="absolute top-24 right-6 w-32 flex flex-col items-end gap-2 z-0 bg-background/20 backdrop-blur-md p-4 rounded-2xl border border-glass-border shadow-xl">
           <div className="w-full flex items-center justify-center mb-2 pb-2 border-b border-glass-border/50">
             <span className="text-[10px] uppercase tracking-widest font-bold text-foreground/60">
-              Featured
+              Featured Apps
             </span>
           </div>
-          <DesktopIcon
-            id="icon-pgstudio"
-            label="pgStudio"
-            icon={
-              <img
-                src="https://github.com/dev-asterix/PgStudio/blob/main/docs/assets/postgres-explorer.png?raw=true"
-                className="w-6 h-6 object-contain filter drop-shadow opacity-90"
-                alt="pgStudio"
-              />
-            }
-            onClick={() =>
-              openWindow("repo-demo", "pgStudio — Interactive Demo", 220, 200, {
-                repoId: "pgStudio",
-                maximized: true,
-              })
-            }
-          />
-          <DesktopIcon
-            id="icon-drawdown"
-            label="drawdown"
-            icon={
-              <img
-                src="https://github.com/dev-asterix/drawdown/blob/main/public/logo.png?raw=true"
-                className="w-6 h-6 object-contain filter drop-shadow opacity-90"
-                alt="drawdown"
-              />
-            }
-            onClick={() =>
-              openWindow("repo-demo", "drawdown — Interactive Demo", 240, 220, {
-                repoId: "drawdown",
-                maximized: true,
-              })
-            }
-          />
-          <DesktopIcon
-            id="icon-andthetimeis"
-            label="and-the-time-is"
-            icon={
-              <img
-                src="https://github.com/dev-asterix/and-the-time-is/blob/main/public/favicon.ico?raw=true"
-                className="w-6 h-6 object-contain filter drop-shadow opacity-90"
-                alt="and-the-time-is"
-              />
-            }
-            onClick={() =>
-              openWindow(
-                "repo-demo",
-                "and-the-time-is — Interactive Demo",
-                260,
-                240,
-                { repoId: "and-the-time-is", maximized: true },
-              )
-            }
-          />
+          {pinnedEntries.map((entry) => (
+            <DesktopIcon
+              key={entry.id}
+              id={`icon-${entry.id}`}
+              label={entry.name}
+              icon={
+                entry.icon ? (
+                  <img
+                    src={entry.icon}
+                    alt={entry.name}
+                    className="w-7 h-7 object-contain"
+                  />
+                ) : (
+                  <Globe size={24} className="text-cyan-glowing" />
+                )
+              }
+              onClick={() =>
+                openWindow("repo-demo", `${entry.name} — Interactive Demo`, {
+                  metadata: { repoId: entry.id, maximized: true },
+                })
+              }
+            />
+          ))}
         </div>
       )}
 

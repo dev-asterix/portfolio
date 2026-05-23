@@ -1,8 +1,42 @@
+import { useEffect, useMemo } from "react";
 import { useOSStore } from "@/store/useOSStore";
-import { Github, Mail, Terminal, FolderGit2, BookOpen, ChevronRight, Linkedin, Briefcase } from "lucide-react";
+import { buildCatalogue, AppCatalogueEntry } from "@/lib/appCatalogue";
+import { Github, Mail, Terminal, FolderGit2, BookOpen, ChevronRight, Linkedin, Briefcase, Package } from "lucide-react";
 
 export default function WelcomeApp() {
   const { openWindow, closeWindow } = useOSStore();
+  const repos = useOSStore((s) => s.repos);
+  const settings = useOSStore((s) => s.settings);
+  const updateSettings = useOSStore((s) => s.updateSettings);
+
+  // ── Clamp and persist out-of-range skill levels ──────────────────────────────
+  useEffect(() => {
+    if (!settings.skills || settings.skills.length === 0) return;
+
+    let needsPersist = false;
+    const corrected = settings.skills.map((skill) => {
+      const clamped = Math.max(1, Math.min(5, Math.round(skill.level)));
+      if (clamped !== skill.level) {
+        needsPersist = true;
+        return { ...skill, level: clamped };
+      }
+      return skill;
+    });
+
+    if (needsPersist) {
+      updateSettings({ skills: corrected });
+    }
+  }, [settings.skills, updateSettings]);
+
+  // ── Build featured projects from settings.featuredAppIds + catalogue ─────────
+  const featuredEntries = useMemo(() => {
+    const catalogue = buildCatalogue(repos, settings);
+    const ids = settings.featuredAppIds ?? [];
+    const resolved = ids
+      .map((id) => catalogue.find((entry) => entry.id === id))
+      .filter(Boolean) as AppCatalogueEntry[];
+    return resolved.slice(0, 6);
+  }, [repos, settings]);
 
   const handleTerminalOpen = () => {
     openWindow("terminal", "terminal — dev-asterix");
@@ -37,35 +71,8 @@ export default function WelcomeApp() {
     }
   ];
 
-  const skills = [
-    { name: "Golang / Go", level: "Advanced", highlight: true },
-    { name: "React & Next.js", level: "Advanced" },
-    { name: "Rust", level: "Intermediate" },
-    { name: "RDBMS/SQL", level: "Advanced" },
-    { name: "Architecture", level: "Lead", highlight: true },
-    // { name: "Experience", level: "6+ Years", highlight: true },
-  ];
-
-  const featuredProjects = [
-    {
-      id: "pgStudio",
-      name: "pgStudio",
-      desc: "PostgreSQL GUI and management tool",
-      icon: <img src="https://github.com/dev-asterix/PgStudio/blob/main/docs/assets/postgres-explorer.png?raw=true" className="w-8 h-8 object-contain filter drop-shadow opacity-90" alt="pgStudio" />
-    },
-    {
-      id: "drawdown",
-      name: "drawdown",
-      desc: "Drawing and diagramming tool",
-      icon: <img src="https://github.com/dev-asterix/drawdown/blob/main/public/logo.png?raw=true" className="w-8 h-8 object-contain filter drop-shadow opacity-90" alt="drawdown" />
-    },
-    {
-      id: "and-the-time-is",
-      name: "and-the-time-is",
-      desc: "Time tracking and visualization",
-      icon: <img src="https://github.com/dev-asterix/and-the-time-is/blob/main/public/favicon.ico?raw=true" className="w-8 h-8 object-contain filter drop-shadow opacity-90" alt="and-the-time-is" />
-    }
-  ];
+  // ── Skills from settings (clamped above) ────────────────────────────────────
+  const skills = settings.skills ?? [];
 
   return (
     <div className="flex flex-col h-full font-sans text-foreground overflow-y-auto p-8 md:p-10 bg-background/50 backdrop-blur-md">
@@ -79,17 +86,33 @@ export default function WelcomeApp() {
           Performance obsessive. Systems first. Features second. Minimal surface, maximum throughput. Building digital infrastructure and elegant minimalist applications.
         </p>
 
+        {/* ── Skills Strip ─────────────────────────────────────────────────── */}
         <div className="flex flex-wrap gap-2 mb-2">
-          {skills.map((skill, i) => (
-            <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-foreground/5 border border-glass-border">
-              <span className={`text-xs font-semibold ${skill.highlight ? "text-cyan-glowing" : "text-foreground/90"}`}>
-                {skill.name}
-              </span>
-              <span className="text-[10px] text-foreground/50 uppercase tracking-wider bg-background/50 px-1.5 py-0.5 rounded">
-                {skill.level}
-              </span>
-            </div>
-          ))}
+          {skills.map((skill, i) => {
+            const level = Math.max(1, Math.min(5, Math.round(skill.level)));
+            return (
+              <div
+                key={i}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-foreground/5 border border-glass-border"
+              >
+                <span className={`text-xs font-semibold ${level >= 4 ? "text-cyan-glowing" : "text-foreground/90"}`}>
+                  {skill.name}
+                </span>
+                <span className="flex items-center gap-0.5">
+                  {Array.from({ length: 5 }, (_, dotIdx) => (
+                    <span
+                      key={dotIdx}
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        dotIdx < level
+                          ? "bg-cyan-glowing"
+                          : "bg-foreground/20"
+                      }`}
+                    />
+                  ))}
+                </span>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -130,24 +153,51 @@ export default function WelcomeApp() {
         </a>
       </div>
 
+      {/* ── Featured Projects (data-driven) ──────────────────────────────── */}
       <div className="flex flex-col gap-5 pt-6 border-t border-glass-border/30 mb-4">
         <h2 className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Featured Projects</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {featuredProjects.map((project) => (
-            <button
-              key={project.id}
-              onClick={() => openWindow("repo-demo", `${project.name} — Interactive Demo`, 0, 0, { repoId: project.id, maximized: true })}
-              className="group flex items-center px-2 py-1 rounded-xl border border-glass-border bg-foreground/5 hover:bg-foreground/10 hover:border-cyan-glowing/50 transition-all text-left gap-4"
-            >
-              <div className="p-2 rounded-lg bg-background/50 border border-glass-border group-hover:scale-110 transition-transform shrink-0">
-                {project.icon}
-              </div>
-              <div className="flex flex-col gap-0.5 min-w-0">
-                <span className="font-semibold text-foreground/90 text-sm truncate">{project.name}</span>
-                <span className="text-[10px] text-foreground/50 leading-tight line-clamp-2">{project.desc}</span>
-              </div>
-            </button>
-          ))}
+          {featuredEntries.length > 0 ? (
+            featuredEntries.map((entry) => (
+              <button
+                key={entry.id}
+                onClick={() =>
+                  openWindow("repo-demo", `${entry.name} — Interactive Demo`, 0, 0, {
+                    repoId: entry.id,
+                    maximized: true,
+                  })
+                }
+                className="group flex items-center px-2 py-1 rounded-xl border border-glass-border bg-foreground/5 hover:bg-foreground/10 hover:border-cyan-glowing/50 transition-all text-left gap-4"
+              >
+                <div className="p-2 rounded-lg bg-background/50 border border-glass-border group-hover:scale-110 transition-transform shrink-0">
+                  {entry.icon ? (
+                    <img
+                      src={entry.icon}
+                      className="w-8 h-8 object-contain filter drop-shadow opacity-90"
+                      alt={entry.name}
+                    />
+                  ) : (
+                    <Package size={20} className="text-cyan-glowing/70" />
+                  )}
+                </div>
+                <div className="flex flex-col gap-0.5 min-w-0">
+                  <span className="font-semibold text-foreground/90 text-sm truncate">
+                    {entry.name}
+                  </span>
+                  <span className="text-[10px] text-foreground/50 leading-tight line-clamp-2">
+                    {entry.description || "No description"}
+                  </span>
+                </div>
+              </button>
+            ))
+          ) : (
+            <div className="col-span-full flex items-center gap-3 px-4 py-3 rounded-xl border border-dashed border-glass-border bg-foreground/5 text-foreground/50">
+              <Package size={18} className="shrink-0" />
+              <span className="text-xs">
+                No featured projects yet. Pin projects from the App Catalogue to showcase them here.
+              </span>
+            </div>
+          )}
         </div>
       </div>
 
