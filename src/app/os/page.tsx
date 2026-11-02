@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { fetchRepos } from "@/lib/github";
+import { getShowcaseRepos } from "@/lib/projectStats";
 import { getSystemInfo } from "@/lib/sysinfo";
 import MenuBar from "@/components/ui/MenuBar";
 import DesktopManager from "@/components/ui/DesktopManager";
@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 
 export default async function Home() {
   const [repos, systemInfo] = await Promise.all([
-    fetchRepos("dev-asterix"),
+    getShowcaseRepos(),
     getSystemInfo(),
   ]);
 

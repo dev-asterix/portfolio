@@ -32,7 +32,7 @@ describe('buildCatalogue with the curated registry', () => {
       settings,
     );
     expect(cat.filter((e) => e.id.toLowerCase() === 'drawdown')).toHaveLength(1);
-    expect(cat.find((e) => e.name === 'asterix OS')).toBeUndefined();
+    expect(cat.filter((e) => e.name === 'asterix OS')).toHaveLength(1);
   });
 
   it('still shows curated live projects when GitHub returned nothing', () => {
@@ -43,5 +43,17 @@ describe('buildCatalogue with the curated registry', () => {
   it('keeps pinned order first', () => {
     const cat = buildCatalogue([], { ...settings, pinnedApps: ['drawdown', 'NexQL'] });
     expect(cat.slice(0, 2).map((e) => e.id)).toEqual(['drawdown', 'NexQL']);
+  });
+});
+
+describe('buildCatalogue with OS project slugs', () => {
+  it('maps slugs to display names so featured ids still match', () => {
+    const cat = buildCatalogue(
+      [repo('nexql', 'https://nexql.astrx.dev'), repo('nexql-mcp', 'https://nexql-mcp.astrx.dev')],
+      settings,
+    );
+    expect(cat.map((e) => e.id)).toEqual(expect.arrayContaining(['NexQL', 'NexQL MCP']));
+    expect(cat.filter((e) => e.id === 'NexQL')).toHaveLength(1);
+    expect(cat.find((e) => e.id === 'NexQL MCP')?.name).toBe('NexQL MCP');
   });
 });

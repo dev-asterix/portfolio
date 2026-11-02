@@ -90,13 +90,21 @@ function commitCount(event: any): number {
 }
 
 export async function GET() {
-  // Fetch events from personal account (ric-v) and org (dev-asterix) in parallel
-  const [personalEvents, orgEvents] = await Promise.all([
+  // Events from the personal account (ric-v) and both orgs, in parallel
+  const [personalEvents, orgEvents, nexqlEvents] = await Promise.all([
     fetchEvents('ric-v'),
     fetchEvents('dev-asterix'),
+    fetchEvents('NexQL-OSS'),
   ]);
 
-  const allEvents = [...personalEvents, ...orgEvents];
+  // A push to an org repo appears in both the user's and the org's feed — count it once.
+  const seen = new Set<string>();
+  const allEvents = [...personalEvents, ...orgEvents, ...nexqlEvents].filter((ev) => {
+    const id = String(ev?.id ?? '');
+    if (!id || seen.has(id)) return !id;
+    seen.add(id);
+    return true;
+  });
 
   // Build 52-week (364-day) contribution grid
   const today = new Date();

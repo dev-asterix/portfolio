@@ -383,3 +383,26 @@ export function featuredProjects(): Project[] {
 export function projectsInGroup(groupId: string): Project[] {
   return PROJECTS.filter((p) => p.group === groupId);
 }
+
+/** Owner the desktop OS assumes for a bare repo name. */
+export const DEFAULT_OWNER = "dev-asterix";
+
+/**
+ * The desktop OS names every project by its slug (e.g. "nexql-mcp") and treats
+ * it as living under dev-asterix. Map that back to the real GitHub repository
+ * (NexQL-OSS/mcp). Any other owner/name passes through unchanged.
+ */
+export function resolveRepoRef(name: string, owner: string = DEFAULT_OWNER): { owner: string; repo: string } {
+  if (owner.toLowerCase() === DEFAULT_OWNER) {
+    const project = findProject(name);
+    if (project) return { owner: project.owner, repo: project.repo };
+  }
+  return { owner, repo: name };
+}
+
+/** Registry project for a GitHub owner/repo pair, if any. */
+export function projectForRepo(owner: string, repo: string): Project | undefined {
+  const o = owner.toLowerCase();
+  const r = repo.toLowerCase();
+  return PROJECTS.find((p) => p.owner.toLowerCase() === o && p.repo.toLowerCase() === r);
+}

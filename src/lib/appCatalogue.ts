@@ -1,7 +1,7 @@
 import { GitHubRepo } from '@/lib/github';
 import { useOSStore } from '@/store/useOSStore';
 import { DEMO_CONTENT } from '@/lib/demoContent';
-import { PROJECTS } from '@/lib/projects';
+import { PROJECTS, findProject } from '@/lib/projects';
 
 // ── App Catalogue Entry ───────────────────────────────────────────────────────
 
@@ -92,11 +92,15 @@ export function buildCatalogue(
     if (!(settings.showArchived ?? false) && repo.archived) continue;
     if (!(settings.showForked ?? false) && repo.fork) continue;
 
+    // Registry projects use their display name as the id ("NexQL MCP"), which
+    // is what featuredAppIds, pinnedApps and the demo viewer key on.
+    const project = findProject(repo.name);
+    const id = project ? (project.demoId ?? project.name) : repo.name;
     entries.push({
-      id: repo.name,
-      name: repo.name,
-      description: repo.description ?? '',
-      icon: findDemoIcon(repo.name),
+      id,
+      name: project?.name ?? repo.name,
+      description: project?.tagline ?? repo.description ?? '',
+      icon: project?.icon ?? findDemoIcon(id),
       url,
       topics: repo.topics ?? [],
       isArchived: repo.archived,

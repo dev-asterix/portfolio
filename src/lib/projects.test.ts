@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { PROJECTS, PROJECT_CATEGORIES, PROJECT_GROUPS, findProject, featuredProjects, githubUrl, projectsInGroup } from './projects';
+import { PROJECTS, PROJECT_CATEGORIES, PROJECT_GROUPS, findProject, featuredProjects, githubUrl, projectsInGroup, resolveRepoRef, projectForRepo } from './projects';
 import { DEMO_CONTENT, projectDemo } from './demoContent';
 import { validateAndHeal } from '@/store/useOSStore';
 
@@ -100,5 +100,32 @@ describe('featured apps migration', () => {
   it('leaves a customised list alone', () => {
     const { result } = validateAndHeal({ featuredAppIds: ['drawdown', 'NexQL'] });
     expect(result.featuredAppIds).toEqual(['drawdown', 'NexQL']);
+  });
+});
+
+describe('resolveRepoRef (desktop OS → real GitHub repo)', () => {
+  it('maps OS project slugs to their real owner and repo', () => {
+    expect(resolveRepoRef('nexql')).toEqual({ owner: 'NexQL-OSS', repo: 'core' });
+    expect(resolveRepoRef('nexql-mcp')).toEqual({ owner: 'NexQL-OSS', repo: 'mcp' });
+    expect(resolveRepoRef('nexql-themes')).toEqual({ owner: 'NexQL-OSS', repo: 'vsc-themes' });
+    expect(resolveRepoRef('divulge')).toEqual({ owner: 'ric-v', repo: 'divulge-keyvalue-db-ui' });
+    expect(resolveRepoRef('asterix-os')).toEqual({ owner: 'dev-asterix', repo: 'portfolio' });
+    expect(resolveRepoRef('task-master')).toEqual({ owner: 'dev-asterix', repo: 'task-master.go' });
+  });
+
+  it('keeps old dev-asterix names working', () => {
+    expect(resolveRepoRef('drawdown')).toEqual({ owner: 'dev-asterix', repo: 'drawdown' });
+    expect(resolveRepoRef('portfolio')).toEqual({ owner: 'dev-asterix', repo: 'portfolio' });
+    expect(resolveRepoRef('PgStudio')).toEqual({ owner: 'NexQL-OSS', repo: 'core' });
+  });
+
+  it('passes unknown repos and explicit other owners through unchanged', () => {
+    expect(resolveRepoRef('.github')).toEqual({ owner: 'dev-asterix', repo: '.github' });
+    expect(resolveRepoRef('core', 'someone-else')).toEqual({ owner: 'someone-else', repo: 'core' });
+  });
+
+  it('finds a project from its real GitHub owner/repo', () => {
+    expect(projectForRepo('nexql-oss', 'MCP')?.slug).toBe('nexql-mcp');
+    expect(projectForRepo('dev-asterix', 'core')).toBeUndefined();
   });
 });
