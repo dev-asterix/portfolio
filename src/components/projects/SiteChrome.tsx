@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Github, Linkedin, Mail, FileText, Monitor } from "lucide-react";
-import { PROFILE } from "@/lib/profile";
+import { Github, Mail, Monitor, ArrowUpRight } from "lucide-react";
+import { SITE } from "@/lib/site";
 import ThemeSwitcher from "./ThemeSwitcher";
 
 /** Top-left lit backdrop shared by the website pages. */
@@ -21,12 +21,12 @@ export function SiteHeader() {
             *
           </span>
           <span>
-            asterix<span className="text-foreground/45">.dev</span>
+            astrx<span className="text-foreground/45">.dev</span>
           </span>
         </Link>
         <nav aria-label="Primary" className="flex items-center gap-1 text-sm sm:gap-2">
           <Link href="/projects#work" className="link-draw hidden px-2 py-1 text-foreground/70 hover:text-foreground md:block">
-            Projects
+            Products
           </Link>
           <Link href="/projects#contact" className="link-draw hidden px-2 py-1 text-foreground/70 hover:text-foreground md:block">
             Contact
@@ -53,19 +53,13 @@ export function ContactLinks() {
   return (
     <div className="flex flex-wrap gap-2">
       <a
-        href={`mailto:${PROFILE.email}`}
+        href={`mailto:${SITE.email}`}
         className={`${item} border-cyan-glowing/40 bg-cyan-glowing/10 text-cyan-glowing`}
       >
-        <Mail size={16} aria-hidden /> {PROFILE.email}
+        <Mail size={16} aria-hidden /> {SITE.email}
       </a>
-      <a href={PROFILE.links.github} target="_blank" rel="noopener noreferrer" className={item}>
+      <a href={SITE.links.github} target="_blank" rel="noopener noreferrer" className={item}>
         <Github size={16} aria-hidden /> GitHub
-      </a>
-      <a href={PROFILE.links.linkedin} target="_blank" rel="noopener noreferrer" className={item}>
-        <Linkedin size={16} aria-hidden /> LinkedIn
-      </a>
-      <a href={PROFILE.links.resume} target="_blank" rel="noopener noreferrer" className={item}>
-        <FileText size={16} aria-hidden /> Résumé
       </a>
     </div>
   );
@@ -91,11 +85,20 @@ export function SiteFooter() {
     <footer className="border-t border-glass-border">
       <div className="mx-auto flex max-w-5xl flex-col gap-3 px-4 py-10 text-xs text-foreground/50 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <span className="font-mono">
-          <span className="text-cyan-glowing">*</span> © {new Date().getFullYear()} {PROFILE.name} · {PROFILE.signoff}
+          <span className="text-cyan-glowing">*</span> © {new Date().getFullYear()} {SITE.name} · {SITE.signoff}
         </span>
-        <Link href="/os" className="link-draw self-start hover:text-cyan-glowing sm:self-auto">
-          Boot the desktop-OS version →
-        </Link>
+        <span className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <a
+            href={SITE.maker.url}
+            className="link-draw inline-flex items-center gap-1 hover:text-cyan-glowing"
+          >
+            Built by {SITE.maker.name}
+            <ArrowUpRight size={12} aria-hidden />
+          </a>
+          <Link href="/os" className="link-draw hover:text-cyan-glowing">
+            Open Asterix OS →
+          </Link>
+        </span>
       </div>
     </footer>
   );

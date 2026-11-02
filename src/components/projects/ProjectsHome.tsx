@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Monitor, ArrowRight, ArrowUpRight } from "lucide-react";
-import { PROFILE } from "@/lib/profile";
-import { PROJECT_GROUPS } from "@/lib/projects";
+import { SITE } from "@/lib/site";
+import { PROJECT_GROUPS, PROJECT_CATEGORIES } from "@/lib/projects";
 import { getProjectsWithStats, toProjectView } from "@/lib/projectStats";
 import { FeaturedProjectCard } from "@/components/projects/ProjectCards";
 import ProjectBrowser from "@/components/projects/ProjectBrowser";
@@ -21,13 +21,20 @@ export default async function ProjectsHome() {
 
   const jsonLd = {
     "@context": "https://schema.org",
-    "@type": "Person",
-    name: PROFILE.name,
-    jobTitle: "Software Engineer",
-    url: PROFILE.siteUrl,
-    email: `mailto:${PROFILE.email}`,
-    sameAs: [PROFILE.links.github, PROFILE.links.githubPersonal, PROFILE.links.linkedin],
+    "@type": "Organization",
+    name: SITE.name,
+    url: SITE.siteUrl,
+    logo: `${SITE.siteUrl}/logo.png`,
+    description: SITE.description,
+    email: SITE.email,
+    sameAs: [SITE.links.github],
+    founder: { "@type": "Person", name: SITE.maker.name, url: SITE.maker.url },
   };
+
+  const categoryCounts = PROJECT_CATEGORIES.map((c) => ({
+    name: c,
+    count: projects.filter((p) => p.category === c).length,
+  })).filter((c) => c.count > 0);
 
   return (
     <div className="relative min-h-screen font-sans text-foreground">
@@ -43,20 +50,20 @@ export default async function ProjectsHome() {
             style={{ "--d": "0ms" } as React.CSSProperties}
           >
             <span aria-hidden className="pulse-dot h-2 w-2 rounded-full bg-emerald-500" />
-            {PROFILE.now}
+            {SITE.now}
           </p>
 
           <p className="rise font-mono text-sm leading-relaxed" style={{ "--d": "90ms" } as React.CSSProperties}>
             <span aria-hidden>
-              <span className="text-emerald-burnt">richie@asterix</span>
+              <span className="text-emerald-burnt">astrx</span>
               <span className="text-foreground/40">:</span>
               <span className="text-cyan-glowing">~</span>
               <span className="text-foreground/40">$ </span>
-              <span className="text-foreground/70">whoami</span>
+              <span className="text-foreground/70">ls products</span>
               <br />
             </span>
-            <span className="text-foreground/85">{PROFILE.name}</span>
-            <span className="text-foreground/50"> — {PROFILE.role}</span>
+            <span className="text-foreground/85">{projects.length} products</span>
+            <span className="text-foreground/50"> — {SITE.tagline}</span>
           </p>
 
           <h1
@@ -64,29 +71,40 @@ export default async function ProjectsHome() {
             className="rise max-w-3xl text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl"
             style={{ "--d": "180ms" } as React.CSSProperties}
           >
-            Engineering interfaces <span className="caret text-accent-gradient">that think.</span>
+            Software for developers, <span className="caret text-accent-gradient">built to be used.</span>
           </h1>
 
           <p
             className="rise max-w-2xl text-base leading-relaxed text-foreground/75 sm:text-lg"
             style={{ "--d": "270ms" } as React.CSSProperties}
           >
-            {PROFILE.bio}
+            {SITE.description}
           </p>
 
-          <ul className="rise flex flex-wrap gap-2" aria-label="Focus areas" style={{ "--d": "350ms" } as React.CSSProperties}>
-            {PROFILE.focus.map((f) => (
+          <ul className="rise flex flex-wrap gap-2" aria-label="Product categories" style={{ "--d": "350ms" } as React.CSSProperties}>
+            {categoryCounts.map((c) => (
               <li
-                key={f}
+                key={c.name}
                 className="rounded-md border border-glass-border bg-background/50 px-2.5 py-1 font-mono text-xs text-foreground/70 transition-colors hover:border-cyan-glowing/40 hover:text-cyan-glowing"
               >
-                {f}
+                {c.name} · {c.count}
               </li>
             ))}
           </ul>
 
-          <div className="rise" style={{ "--d": "430ms" } as React.CSSProperties}>
-            <ContactLinks />
+          <div className="rise flex flex-wrap gap-2" style={{ "--d": "430ms" } as React.CSSProperties}>
+            <a
+              href="#work"
+              className="press inline-flex items-center gap-2 rounded-lg bg-cyan-glowing px-4 py-2.5 text-sm font-semibold text-background hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glowing"
+            >
+              Explore {nexql.name} <ArrowRight size={15} aria-hidden />
+            </a>
+            <a
+              href="#products"
+              className="press depth inline-flex items-center gap-2 rounded-lg border border-glass-border bg-background/60 px-4 py-2.5 text-sm font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
+            >
+              Browse all products
+            </a>
           </div>
 
           {/* ── Desktop OS option ─────────────────────────────────────── */}
@@ -95,10 +113,10 @@ export default async function ProjectsHome() {
             style={{ "--d": "520ms" } as React.CSSProperties}
           >
             <div className="flex flex-col gap-1">
-              <p className="font-medium">Prefer something more hands-on?</p>
+              <p className="font-medium">Try them inside Asterix OS</p>
               <p className="text-sm text-foreground/65">
-                Explore the same work inside a browser-based desktop OS — windows, a terminal and a live GitHub file
-                explorer.
+                Asterix OS is a browser-based desktop where every product opens in its own window — with a terminal and
+                a live GitHub file explorer.
               </p>
               <DefaultViewToggle className="mt-2" />
             </div>
@@ -106,7 +124,7 @@ export default async function ProjectsHome() {
               href="/os"
               className="press group inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-cyan-glowing px-4 py-2.5 text-sm font-semibold text-background shadow-[inset_1px_1px_0_rgba(255,255,255,0.35),6px_10px_24px_-10px_color-mix(in_srgb,var(--cyan-glowing)_60%,transparent)] hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glowing"
             >
-              <Monitor size={16} aria-hidden /> Launch desktop OS
+              <Monitor size={16} aria-hidden /> Launch Asterix OS
               <ArrowRight size={15} aria-hidden className="transition-transform duration-200 group-hover:translate-x-1" />
             </Link>
           </div>
@@ -157,25 +175,13 @@ export default async function ProjectsHome() {
         </section>
 
         {/* ── Everything else ──────────────────────────────────────────── */}
-        <section aria-labelledby="projects-heading" className="flex flex-col gap-8">
+        <section id="products" aria-labelledby="projects-heading" className="flex scroll-mt-20 flex-col gap-8">
           <div className="reveal">
             <SectionHeading
               index="02"
               id="projects-heading"
-              title="Projects"
-              sub={
-                <>
-                  Apps, tools and Go libraries across{" "}
-                  <a className="link-draw hover:text-cyan-glowing" href="https://github.com/dev-asterix">
-                    dev-asterix
-                  </a>{" "}
-                  and{" "}
-                  <a className="link-draw hover:text-cyan-glowing" href={PROFILE.links.githubPersonal}>
-                    ric-v
-                  </a>
-                  .
-                </>
-              }
+              title="More products"
+              sub="Apps, command-line tools and Go libraries, all open source."
             />
           </div>
           <ProjectBrowser projects={others} updatedAt={updatedAt} variant="rich" />
@@ -184,10 +190,10 @@ export default async function ProjectsHome() {
         {/* ── Contact ──────────────────────────────────────────────────── */}
         <section id="contact" aria-labelledby="contact-heading" className="reveal scroll-mt-20">
           <div className="surface flex flex-col gap-5 rounded-2xl p-6 sm:p-10">
-            <SectionHeading index="03" id="contact-heading" title="Let's talk" />
+            <SectionHeading index="03" id="contact-heading" title="Get in touch" />
             <p className="max-w-2xl text-foreground/70">
-              Open to conversations about backend architecture, databases, developer tooling and interesting
-              open-source ideas.
+              Questions, bug reports or ideas for a product? Email us, or open an issue on the product&apos;s
+              GitHub repository.
             </p>
             <ContactLinks />
           </div>

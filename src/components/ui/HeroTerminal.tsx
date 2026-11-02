@@ -99,7 +99,7 @@ export default function HeroTerminal({ onInitialize }: { onInitialize?: () => vo
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 font-mono text-sm text-cyan-glowing font-medium">
             <ChevronRight size={14} />
-            <span>asterix.dev — v1.0</span>
+            <span>astrx.dev — v1.0</span>
           </div>
           <div className="flex flex-wrap items-center gap-6 text-xs text-foreground/60 font-mono">
             <div className="flex items-center gap-2 hover:text-cyan-glowing transition-colors">

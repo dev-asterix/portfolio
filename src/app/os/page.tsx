@@ -8,13 +8,13 @@ import Taskbar from "@/components/ui/Taskbar";
 import BootWrapper from "@/components/ui/BootWrapper";
 import RootErrorBoundary from "@/components/ui/RootErrorBoundary";
 import BSODOverlay from "@/components/ui/BSODOverlay";
-import { PROFILE } from "@/lib/profile";
+import { SITE } from "@/lib/site";
 
 export const revalidate = 3600; // revalidate every hour
 
 export const metadata: Metadata = {
   title: "Desktop OS",
-  description: `Explore ${PROFILE.name}'s projects inside an interactive, browser-based desktop operating system.`,
+  description: `Explore the ${SITE.name} products inside Asterix OS, an interactive, browser-based desktop operating system.`,
   alternates: { canonical: "/os" },
 };
 
@@ -31,14 +31,14 @@ export default async function Home() {
         href="/projects"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-12 focus:z-[10000] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:text-cyan-glowing focus:outline-2 focus:outline-cyan-glowing"
       >
-        Skip to the accessible projects page
+        Skip to the accessible products page
       </Link>
       <div className="sr-only">
-        <h1>{PROFILE.name} — {PROFILE.role}</h1>
-        <p>{PROFILE.bio}</p>
+        <h1>{SITE.name} — {SITE.tagline}</h1>
+        <p>{SITE.description}</p>
         <p>
-          This site is an interactive desktop OS. For a plain list of projects, visit{" "}
-          <Link href="/projects">the projects page</Link>.
+          This site is an interactive desktop OS. For a plain list of products, visit{" "}
+          <Link href="/projects">the products page</Link>.
         </p>
       </div>
 

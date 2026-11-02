@@ -85,11 +85,11 @@ function NewTabPage({ onNavigate, onOpenNewTab }: { onNavigate: (url: string) =>
         </h2>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
           {[
-            { label: "Projects",   path: "/projects",   icon: FolderGit2 },
+            { label: "Products",   path: "/projects",   icon: FolderGit2 },
             { label: "Timeline",   path: "/timeline",   icon: CalendarDays },
             { label: "Dashboard",  path: "/dashboard",  icon: LayoutDashboard },
             { label: "Monitor",    path: "/monitor",    icon: Activity },
-            { label: "Resume",     path: "/resume",     icon: FileText },
+            { label: "Maker",      path: "/resume",     icon: FileText },
             { label: "Settings",   path: "/settings",   icon: Settings },
           ].map(({ label, path, icon: Icon }) => (
             <button
@@ -183,19 +183,19 @@ function InternalRenderer({ path }: { path: string }) {
             <ExternalLink size={28} className="text-cyan-glowing" />
           </div>
           <div className="flex flex-col gap-2">
-            <p className="text-base font-bold text-foreground/80">Resume / CV</p>
+            <p className="text-base font-bold text-foreground/80">About the maker</p>
             <p className="text-xs text-foreground/40 max-w-xs leading-relaxed">
-              Download or view the resume on GitHub. Projects and skills are best explored right here in Asterix OS.
+              astrx.dev is about the products. For the person behind them — background, experience and résumé — visit me.astrx.dev.
             </p>
           </div>
           <div className="flex gap-3 flex-wrap justify-center">
             <a
-              href="https://github.com/ric-v"
+              href="https://me.astrx.dev"
               target="_blank"
               rel="noreferrer"
               className="flex items-center gap-2 px-4 py-2 rounded-lg border border-cyan-glowing/30 bg-cyan-glowing/8 text-cyan-glowing text-xs hover:bg-cyan-glowing/15 transition-colors"
             >
-              <ExternalLink size={12} /> View GitHub Profile
+              <ExternalLink size={12} /> Visit me.astrx.dev
             </a>
             <a
               href="mailto:support@astrx.dev"
