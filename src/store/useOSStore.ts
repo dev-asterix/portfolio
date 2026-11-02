@@ -142,8 +142,8 @@ export const SETTINGS_DEFAULTS: OSSettings = {
   reduceMotion: false,
   doNotDisturb: false,
   pinnedApps: [],
-  trustedDemoHosts: ['astrx.dev', 'drawdown.astrx.dev', 'pgstudio.astrx.dev', 'me.astrx.dev'],
-  featuredAppIds: ['PgStudio', 'drawdown', 'and-the-time-is'],
+  trustedDemoHosts: ['astrx.dev', 'drawdown.astrx.dev', 'nexql.astrx.dev', 'nexql-mcp.astrx.dev', 'timeis.astrx.dev', 'me.astrx.dev'],
+  featuredAppIds: ['NexQL', 'drawdown', 'and-the-time-is'],
   skills: DEFAULT_SKILLS,
   restoreVfsOnReload: false,
 };
@@ -272,10 +272,10 @@ export function validateAndHeal(settings: Partial<OSSettings> | null | undefined
     featuredAppIds = s.featuredAppIds
       .filter((v): v is string => typeof v === 'string')
       .map((id) => {
-        // Backward compatibility for older persisted settings.
-        if (id === 'pgStudio') {
+        // Backward compatibility: PgStudio was renamed to NexQL (NexQL-OSS/core).
+        if (id === 'pgStudio' || id === 'PgStudio') {
           healed = true;
-          return 'PgStudio';
+          return 'NexQL';
         }
         return id;
       });

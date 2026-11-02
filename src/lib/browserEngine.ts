@@ -21,7 +21,9 @@ import type { GitHubRepo } from "@/lib/github";
 export const DEMO_REGISTRY: Record<string, string> = {
   portfolio:  "https://astrx.dev",
   drawdown: "https://drawdown.astrx.dev",
-  pgstudio:  "https://pgstudio.astrx.dev",
+  nexql:  "https://nexql.astrx.dev",
+  pgstudio:  "https://nexql.astrx.dev", // legacy alias — PgStudio is now NexQL
+  nexqlmcp:  "https://nexql-mcp.astrx.dev",
   personal_portfolio:  "https://me.astrx.dev",
   andthetimeis: "https://timeis.astrx.dev",
 };

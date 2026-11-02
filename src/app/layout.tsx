@@ -1,8 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import CustomCursor from "@/components/ui/CustomCursor";
+import { PROFILE } from "@/lib/profile";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,9 +15,42 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const DESCRIPTION =
+  `${PROFILE.name} — software engineer building high-throughput backends and developer tools ` +
+  "like NexQL, the PostgreSQL workbench for VS Code. Explore the work in a browser-based desktop OS.";
+
 export const metadata: Metadata = {
-  title: "asterix.dev | Developer OS",
-  description: "Modern minimalist portfolio",
+  metadataBase: new URL(PROFILE.siteUrl),
+  title: {
+    default: `${PROFILE.name} · asterix.dev`,
+    template: `%s · asterix.dev`,
+  },
+  description: DESCRIPTION,
+  authors: [{ name: PROFILE.name, url: PROFILE.siteUrl }],
+  keywords: ["Richie Varghese", "dev-asterix", "NexQL", "PostgreSQL", "VS Code extension", "Go", "Rust", "TypeScript", "portfolio"],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: PROFILE.siteUrl,
+    siteName: "asterix.dev",
+    title: `${PROFILE.name} · asterix.dev`,
+    description: DESCRIPTION,
+    images: [{ url: "/card.png", width: 1024, height: 1024, alt: "asterix.dev" }],
+  },
+  twitter: {
+    card: "summary",
+    title: `${PROFILE.name} · asterix.dev`,
+    description: DESCRIPTION,
+    images: ["/card.png"],
+  },
+  appleWebApp: { capable: true, title: "asterix.dev", statusBarStyle: "black-translucent" },
+};
+
+// No maximum-scale: blocking pinch-zoom fails WCAG 1.4.4 (Resize Text).
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#09090b",
 };
 
 export default function RootLayout({
@@ -28,10 +62,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       {/* Restore data-theme before first paint to prevent FOUC */}
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="theme-color" content="#09090b" />
         <script
           dangerouslySetInnerHTML={{
             __html: `

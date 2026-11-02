@@ -6,8 +6,23 @@ A fully immersive, desktop OS–themed developer portfolio built with **Next.js 
 
 ## Features
 
+### 📇 Classic projects view (`/projects`)
+- Server-rendered, SEO-friendly, mobile-first page for visitors who want the facts fast: who, what, and how to get in touch.
+- Featured projects with highlights, stack and links, plus a filterable/searchable list of everything.
+- Per-project pages at `/projects/<slug>` with README, recent commits and language breakdown. Legacy URLs (e.g. `/projects/PgStudio`) redirect.
+- Linked from the login screen ("Skip the OS"), the Welcome app, and a keyboard skip link on `/`.
+
+### 🗂️ Updating the project list
+Projects are curated in **`src/lib/projects.ts`** — the single source of truth for what is showcased and how it is described.
+Projects can live under any GitHub owner (`dev-asterix`, `NexQL-OSS`, `ric-v`, …). Live stars / last-push dates are
+layered on at request time, and every page still renders if the GitHub API is rate-limited or down.
+
+To add a project, append an entry with `slug`, `owner`, `repo`, `tagline`, `description`, `highlights`, `category`,
+`language`, `stack`, and optionally `featured`, `liveUrl`, `links`, `icon`, and `demoId` (a key in `src/lib/demoContent.ts`
+for the interactive in-OS demo). Name, bio and contact links live in `src/lib/profile.ts`.
+
 ### 🖥️ OS Shell
-- **Boot Sequence** — Fake BIOS/kernel log stream on first visit, with a progress bar and CRT scanline overlay. Skipped on repeat visits (sessionStorage).
+- **Boot Sequence** — Fake BIOS/kernel log stream on first visit, with a progress bar and CRT scanline overlay. Press any key or tap to skip; skipped automatically on repeat visits (sessionStorage).
 - **MenuBar** — Fixed top bar with live clock (weekday + time), WiFi bars, real Battery API indicator, ThemeToggle, and a Power button for reboot.
 - **Taskbar / Dock** — Bottom dock with quick-launch icons and running app indicators. Click a running app to restore/focus it.
 - **Desktop Drag-Select** — Click-drag on empty desktop to draw a translucent selection box.
@@ -82,6 +97,8 @@ Create a `.env.local` file in the project root with the above variable.
 src/
 ├── app/
 │   ├── page.tsx                  # Root page (server component, fetches repos)
+│   ├── projects/                 # Classic projects view + /projects/[repo] detail pages
+│   ├── sitemap.ts, robots.ts     # SEO
 │   └── api/github/               # GitHub API proxy routes
 ├── components/
 │   ├── apps/                     # OS applications
@@ -107,6 +124,9 @@ src/
 ├── store/
 │   └── useOSStore.ts             # Zustand OS state (windows, repos, settings)
 └── lib/
+    ├── projects.ts               # Curated project registry (edit this to update the project list)
+    ├── profile.ts                # Name, bio, contact links
+    ├── projectStats.ts           # Live GitHub stats for registry projects (server)
     ├── github.ts                 # GitHub API helpers
     └── sysinfo.ts                # System info helpers
 ```
