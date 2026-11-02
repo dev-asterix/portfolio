@@ -73,7 +73,9 @@ export async function getShowcaseRepos(): Promise<GitHubRepo[]> {
         owner: { login: project.owner },
         description: project.tagline,
         html_url: githubUrl(project),
-        homepage: project.liveUrl ?? gh?.homepage ?? null,
+        // Only real live sites — GitHub's "homepage" is sometimes a docs page
+        // (pkg.go.dev), which the OS would otherwise list as a live demo.
+        homepage: project.liveUrl ?? null,
         stargazers_count: gh?.stargazers_count ?? 0,
         watchers_count: gh?.watchers_count ?? 0,
         forks_count: gh?.forks_count ?? 0,
