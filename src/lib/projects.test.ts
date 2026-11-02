@@ -15,6 +15,7 @@ describe('project registry', () => {
       expect(PROJECT_CATEGORIES).toContain(p.category);
       if (p.demoId) expect(DEMO_CONTENT[p.demoId], p.slug).toBeDefined();
       expect(p.highlights.length).toBeGreaterThan(0);
+      expect(p.why.trim().length).toBeGreaterThan(20);
     }
   });
 

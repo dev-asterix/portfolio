@@ -84,6 +84,12 @@ export default async function ProjectDetailPage({ params }: Params) {
                 <span aria-hidden className="text-cyan-glowing">.</span>
               </h1>
               {tagline && <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/75">{tagline}</p>}
+              {project?.why && (
+                <p className="mt-4 max-w-2xl border-l-2 border-cyan-glowing/40 pl-3 leading-relaxed text-foreground/80">
+                  <span className="mb-0.5 block font-mono text-[11px] uppercase tracking-widest text-cyan-glowing/80">Why it exists</span>
+                  {project.why}
+                </p>
+              )}
               {project?.description && (
                 <p className="mt-3 max-w-2xl leading-relaxed text-foreground/65">{project.description}</p>
               )}

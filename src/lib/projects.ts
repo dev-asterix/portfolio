@@ -67,6 +67,8 @@ export interface Project {
   tagline: string;
   /** Two- or three-sentence summary. */
   description: string;
+  /** One human sentence on the problem it solves — why it exists. */
+  why: string;
   /** Concrete capabilities — what it actually does. */
   highlights: string[];
   category: ProjectCategory;
@@ -101,6 +103,8 @@ export const PROJECTS: Project[] = [
       "A VS Code extension that brings connection management, schema exploration, SQL notebooks, " +
       "query intelligence and safe database operations into the editor you already build software in. " +
       "Formerly known as PgStudio.",
+    why:
+      "Production databases are easy to break by accident. NexQL builds guardrails — environment tagging, SSH tunnels and human-approved execution — into the editor you already work in.",
     highlights: [
       "Native .pgsql notebooks with completion, result streaming and export",
       "EXPLAIN CodeLens, query history, index usage and table intelligence",
@@ -131,6 +135,8 @@ export const PROJECTS: Project[] = [
     description:
       "A single Rust binary any MCP client can spawn — Claude Desktop, Cursor, VS Code, Zed. " +
       "It ships NexQL's offline schema index so agents ground their SQL in tables that actually exist.",
+    why:
+      "AI agents guess at table names and get SQL wrong. This hands them an offline index of your real schema, read-only by default, so what they write is grounded and can't quietly change data.",
     highlights: [
       "55 tools across schema, query, context, performance, write and admin",
       "Offline schema index: TF-IDF, inferred join graph and value profiles",
@@ -155,6 +161,8 @@ export const PROJECTS: Project[] = [
     description:
       "39 scenario-anchored variants — dark, light, OLED, homage, seasonal and more — sharing one design " +
       "language: quiet keywords, a cool-to-warm syntax spectrum and a single accent reserved for errors.",
+    why:
+      "Database work means hours of reading SQL. These themes quiet the tokens you see most and reserve a single accent for errors, so the thing that needs attention is the thing that stands out.",
     highlights: [
       "39 variants: dark, light, OLED, Postgres homage, seasonal and more",
       "The more often a token appears, the quieter its colour",
@@ -184,6 +192,8 @@ export const PROJECTS: Project[] = [
     description:
       "One ratatui TUI to browse, search and manage repo and AUR packages — plus create and remove " +
       "Chrome web-app and TUI-app launchers.",
+    why:
+      "Managing packages on Arch means juggling pacman, AUR helpers and app launchers. pacpad puts them in one terminal app and shows the exact command before anything runs.",
     highlights: [
       "Fuzzy search across every configured repo; AUR-aware via yay/paru",
       "Every action previews the exact command before anything runs",
@@ -205,6 +215,8 @@ export const PROJECTS: Project[] = [
     description:
       "Pin the time zones you care about and see live time, UTC offset and the difference from your own — " +
       "or pick a moment and see what time it was everywhere else.",
+    why:
+      "Scheduling across time zones means doing offset maths in your head. This keeps the zones you care about side by side, live, and answers \"what time was it everywhere then?\"",
     highlights: [
       "Search zones by city, IANA name, abbreviation or UTC offset",
       "Pinned cards with live time and offset relative to you",
@@ -228,6 +240,8 @@ export const PROJECTS: Project[] = [
     description:
       "Visualise your equity curve, analyse drawdowns, log every transaction and spot patterns in your " +
       "trading — in a clean, fast interface instead of a spreadsheet.",
+    why:
+      "A spreadsheet hides what your trades are telling you. drawdown turns a plain trade log into an equity curve, drawdown periods and a calendar, so patterns show up without formulas.",
     highlights: [
       "Real-time KPI dashboard: win rate, profit factor and more",
       "Interactive equity curve with drawdown periods",
@@ -251,6 +265,8 @@ export const PROJECTS: Project[] = [
     description:
       "A browser-based desktop with draggable windows, a terminal, a virtual file system and a live GitHub " +
       "file explorer — where each astrx.dev product opens in its own window.",
+    why:
+      "A list of products is flat. Asterix OS lets you open each one in its own window — README, code and a terminal included — and poke around the way you would on a real desktop.",
     highlights: [
       "Window manager with snapping, resizing and a taskbar",
       "Terminal with a virtual UNIX-style file system",
@@ -273,6 +289,8 @@ export const PROJECTS: Project[] = [
     description:
       "Upload a file-based key-value database, work on a local copy — view, add, update and remove pairs and " +
       "buckets — then download the result. A Go service with a web UI.",
+    why:
+      "Key-value database files are opaque unless you write code to read them. Divulge lets you open one in a browser, fix it on a local copy, and download the result.",
     highlights: [
       "Upload a database file and edit a local copy safely",
       "View, add, update and remove key-value pairs",
@@ -296,6 +314,8 @@ export const PROJECTS: Project[] = [
     repo: "glog",
     tagline: "A concurrent, thread-safe logger for Go.",
     description: "Simple interfaces for fast, safe logging from many goroutines, in plain text or structured JSON.",
+    why:
+      "Logging from many goroutines shouldn't need hand-rolled locking. glog is safe to call from anywhere and outputs plain text or structured JSON with one line of setup.",
     highlights: [
       "Thread-safe by design — log from any goroutine",
       "Structured (JSON) or unstructured output",
@@ -316,6 +336,8 @@ export const PROJECTS: Project[] = [
     tagline: "Common slice helpers for Go that cut boilerplate.",
     description:
       "The functions you keep rewriting — In, Map, Filter, Reduce and friends — written once, for any element type.",
+    why:
+      "Every Go project ends up rewriting the same slice helpers. This puts In, Map, Filter, Reduce and friends in one place, written once for any element type.",
     highlights: [
       "In, Map, Filter and Reduce for any slice type",
       "Insert, append, replace and remove at any position",
@@ -337,6 +359,8 @@ export const PROJECTS: Project[] = [
     repo: "task-master.go",
     tagline: "A customisable task execution system and library for Go.",
     description: "Schedule and run tasks from Go code with zero external dependencies.",
+    why:
+      "Running recurring jobs from Go shouldn't mean pulling in a heavy scheduler. task-master.go runs interval-based tasks in a few lines, with no third-party dependencies.",
     highlights: [
       "Interval-based scheduler in a few lines of code",
       "No third-party dependencies",
