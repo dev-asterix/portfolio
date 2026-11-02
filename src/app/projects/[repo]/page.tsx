@@ -6,6 +6,7 @@ import { Star, GitFork, Clock, ArrowLeft, Github, Activity, ArrowUpRight, Check,
 import LanguageBreakdown from "@/components/ui/LanguageBreakdown";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
 import { SiteHeader, SiteFooter, SiteBackdrop } from "@/components/projects/SiteChrome";
+import WireframeSurface from "@/components/ui/WireframeSurface";
 import { fetchRepo, fetchReadme, fetchCommits, fetchLanguages } from "@/lib/github";
 import { PROJECTS, findProject, githubUrl, type Project } from "@/lib/projects";
 import { absolutizeReadmeUrls } from "@/lib/readmeUrls";
@@ -129,25 +130,27 @@ export default async function ProjectDetailPage({ params }: Params) {
           </div>
 
           {repo && (
-            <dl className="surface flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl p-4 text-sm">
-              <div className="flex items-center gap-1.5">
+            <dl className="surface surface-interactive group relative flex flex-wrap items-center gap-x-6 gap-y-2 overflow-hidden rounded-xl p-4 text-sm">
+              <WireframeSurface variant="card" radius={240} />
+              <div className="card-top-sheen" aria-hidden="true" />
+              <div className="relative z-10 flex items-center gap-1.5">
                 <Star size={16} className="text-amber-400" aria-hidden />
                 <dt className="sr-only">Stars</dt>
                 <dd className="font-mono">{repo.stargazers_count}</dd>
                 <span className="hidden text-foreground/50 sm:inline">stars</span>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="relative z-10 flex items-center gap-1.5">
                 <GitFork size={16} className="text-cyan-glowing" aria-hidden />
                 <dt className="sr-only">Forks</dt>
                 <dd className="font-mono">{repo.forks_count}</dd>
                 <span className="hidden text-foreground/50 sm:inline">forks</span>
               </div>
-              <div className="flex items-center gap-1.5 text-foreground/65">
+              <div className="relative z-10 flex items-center gap-1.5 text-foreground/65">
                 <Clock size={16} aria-hidden />
                 <dt className="sr-only">Last push</dt>
                 <dd>Updated {formatDistanceToNowStrict(new Date(repo.pushed_at), { addSuffix: true })}</dd>
               </div>
-              {repo.archived && <dd className="text-amber-500">Archived</dd>}
+              {repo.archived && <dd className="relative z-10 text-amber-500">Archived</dd>}
             </dl>
           )}
 
@@ -161,8 +164,9 @@ export default async function ProjectDetailPage({ params }: Params) {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
           {/* ── README ─────────────────────────────────────────────────── */}
           <div className="min-w-0 lg:col-span-2">
-            <section aria-label="README" className="surface reveal overflow-hidden rounded-xl">
-              <div className="flex items-center gap-2 border-b border-glass-border px-5 py-2.5 font-mono text-xs text-foreground/50">
+            <section aria-label="README" className="surface surface-interactive group relative reveal overflow-hidden rounded-xl">
+              <div className="card-top-sheen" aria-hidden="true" />
+              <div className="relative z-10 flex items-center gap-2 border-b border-glass-border px-5 py-2.5 font-mono text-xs text-foreground/50">
                 <span aria-hidden className="flex gap-1.5">
                   <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
                   <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
@@ -170,7 +174,7 @@ export default async function ProjectDetailPage({ params }: Params) {
                 </span>
                 <span className="ml-2">README.md</span>
               </div>
-              <div className="p-5 md:p-8">
+              <div className="relative z-10 p-5 md:p-8">
                 {readme ? (
                   <MarkdownRenderer content={absolutizeReadmeUrls(readme, owner, repoName)} subject={project?.name ?? repoName} />
                 ) : (
@@ -189,21 +193,22 @@ export default async function ProjectDetailPage({ params }: Params) {
           {/* ── Sidebar ────────────────────────────────────────────────── */}
           <aside className="flex flex-col gap-6">
             {project && (
-              <section aria-labelledby="highlights" className="surface reveal rounded-xl p-5">
-                <h2 id="highlights" className="mb-3 font-semibold">
+              <section aria-labelledby="highlights" className="surface surface-interactive group relative reveal overflow-hidden rounded-xl p-5">
+                <div className="card-top-sheen" aria-hidden="true" />
+                <h2 id="highlights" className="relative z-10 mb-3 font-semibold">
                   Highlights
                 </h2>
-                <ul className="space-y-2 text-sm text-foreground/75">
+                <ul className="relative z-10 space-y-2 text-sm text-foreground/75">
                   {project.highlights.map((h) => (
-                    <li key={h} className="flex gap-2">
-                      <Check size={15} className="mt-0.5 shrink-0 text-emerald-burnt" aria-hidden />
-                      {h}
+                    <li key={h} className="highlight-item flex gap-2">
+                      <Check size={15} className="highlight-icon mt-0.5 shrink-0 text-emerald-burnt" aria-hidden />
+                      <span>{h}</span>
                     </li>
                   ))}
                 </ul>
-                <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Tech stack">
+                <ul className="relative z-10 mt-4 flex flex-wrap gap-1.5" aria-label="Tech stack">
                   {project.stack.map((s) => (
-                    <li key={s} className="rounded border border-glass-border bg-background/50 px-2 py-0.5 font-mono text-[11px] text-foreground/70">
+                    <li key={s} className="tech-chip px-2 py-0.5 font-mono text-[11px] text-foreground/75">
                       {s}
                     </li>
                   ))}
@@ -211,12 +216,13 @@ export default async function ProjectDetailPage({ params }: Params) {
               </section>
             )}
 
-            <section aria-labelledby="activity" className="surface reveal rounded-xl p-5">
-              <h2 id="activity" className="mb-4 flex items-center gap-2 font-semibold">
+            <section aria-labelledby="activity" className="surface surface-interactive group relative reveal overflow-hidden rounded-xl p-5">
+              <div className="card-top-sheen" aria-hidden="true" />
+              <h2 id="activity" className="relative z-10 mb-4 flex items-center gap-2 font-semibold">
                 <Activity size={17} className="text-cyan-glowing" aria-hidden /> Recent commits
               </h2>
               {commits.length > 0 ? (
-                <ol className="space-y-4">
+                <ol className="relative z-10 space-y-4">
                   {commits.map((c) => (
                     <li key={c.sha} className="min-w-0">
                       <p className="truncate text-sm text-foreground/90" title={c.commit.message}>

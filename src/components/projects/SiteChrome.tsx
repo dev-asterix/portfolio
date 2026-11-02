@@ -2,10 +2,15 @@ import Link from "next/link";
 import { Github, Mail, Monitor, ArrowUpRight } from "lucide-react";
 import { SITE } from "@/lib/site";
 import ThemeSwitcher from "./ThemeSwitcher";
+import WireframeSurface from "@/components/ui/WireframeSurface";
 
-/** Top-left lit backdrop shared by the website pages. */
+/** Top-left lit backdrop shared by the website pages with interactive wireframe scan layer. */
 export function SiteBackdrop() {
-  return <div aria-hidden className="site-backdrop" />;
+  return (
+    <div aria-hidden className="site-backdrop">
+      <WireframeSurface variant="backdrop" radius={520} />
+    </div>
+  );
 }
 
 /** Top bar for the website pages. */
@@ -16,7 +21,7 @@ export function SiteHeader() {
         <Link href="/projects" className="group flex items-center gap-1.5 font-mono text-sm font-bold tracking-tight">
           <span
             aria-hidden
-            className="inline-block text-lg leading-none text-cyan-glowing transition-transform duration-500 ease-out group-hover:rotate-[135deg]"
+            className="inline-block text-lg leading-none text-cyan-glowing transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:rotate-[135deg]"
           >
             *
           </span>

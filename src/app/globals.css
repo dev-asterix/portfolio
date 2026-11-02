@@ -49,6 +49,14 @@ body {
   --depth-glare: rgba(255, 255, 255, 0.35);   /* glare overlay on OS windows */
   --surface-bg: color-mix(in srgb, var(--foreground) 3%, var(--background));
   --dot-color: rgba(15, 23, 42, 0.09);
+
+  /* Wireframe & Sheen Tokens */
+  --wireframe-line: rgba(14, 116, 144, 0.09);
+  --wireframe-cross: rgba(14, 116, 144, 0.24);
+  --wireframe-pulse: rgba(14, 116, 144, 0.16);
+  --sheen-soft: rgba(255, 255, 255, 0.65);
+  --sheen-strong: rgba(255, 255, 255, 0.95);
+  --card-light-glow: rgba(14, 116, 144, 0.08);
 }
 
 .dark {
@@ -59,10 +67,18 @@ body {
   --depth-glare: rgba(255, 255, 255, 0.045);
   --surface-bg: color-mix(in srgb, var(--foreground) 2.5%, var(--background));
   --dot-color: rgba(255, 255, 255, 0.07);
+
+  /* Wireframe & Sheen Tokens */
+  --wireframe-line: rgba(0, 229, 255, 0.085);
+  --wireframe-cross: rgba(0, 229, 255, 0.28);
+  --wireframe-pulse: rgba(0, 229, 255, 0.18);
+  --sheen-soft: rgba(255, 255, 255, 0.06);
+  --sheen-strong: rgba(0, 229, 255, 0.32);
+  --card-light-glow: rgba(0, 229, 255, 0.10);
 }
 
 @layer components {
-  /* Raised surface lit from the top-left. */
+  /* Raised surface lit from the top-left with slow, purposeful physical deceleration. */
   .surface {
     position: relative;
     isolation: isolate;
@@ -73,12 +89,13 @@ body {
     box-shadow:
       inset 1px 1px 0 var(--depth-edge),
       inset -1px -1px 0 var(--depth-shade),
-      6px 10px 28px -14px var(--depth-shadow);
+      0 2px 4px color-mix(in srgb, var(--depth-shadow) 25%, transparent),
+      6px 12px 28px -12px var(--depth-shadow);
     transition:
-      transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
-      box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
-      border-color 0.3s ease,
-      background-color 0.3s ease;
+      transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.4s ease;
   }
 
   /* Edges + cast shadow only, for elements that keep their own background. */
@@ -89,31 +106,64 @@ body {
       6px 10px 28px -14px var(--depth-shadow);
   }
 
-  /* Hover: lift toward the light, accent edge, cursor-following spotlight. */
+  /* Specular top-edge rim light catching directional overhead beam */
+  .surface-interactive::after {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    z-index: 2;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--sheen-strong) 40%,
+      var(--sheen-strong) 60%,
+      transparent 100%
+    );
+    opacity: 0.3;
+    transform: scaleX(0.7);
+    transition:
+      opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Cursor-following ambient light spotlight pool */
   .surface-interactive::before {
     content: "";
     position: absolute;
     inset: 0;
-    z-index: -1;
+    z-index: 0;
     border-radius: inherit;
     pointer-events: none;
     background: radial-gradient(
-      380px circle at var(--mx, 0%) var(--my, 0%),
-      color-mix(in srgb, var(--cyan-glowing) 11%, transparent),
-      transparent 65%
+      420px circle at var(--mx, 50%) var(--my, 50%),
+      color-mix(in srgb, var(--cyan-glowing) 14%, transparent) 0%,
+      var(--card-light-glow) 42%,
+      transparent 70%
     );
     opacity: 0;
-    transition: opacity 0.35s ease;
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
   }
 
   .surface-interactive:hover,
   .surface-interactive:focus-within {
-    border-color: color-mix(in srgb, var(--cyan-glowing) 38%, var(--glass-border));
+    border-color: color-mix(in srgb, var(--cyan-glowing) 40%, var(--glass-border));
     box-shadow:
+      /* 1. Contact shadow */
+      0 2px 4px color-mix(in srgb, var(--depth-shadow) 35%, transparent),
+      /* 2. Mid elevation volume */
+      0 8px 18px -2px color-mix(in srgb, var(--depth-shadow) 45%, transparent),
+      /* 3. Diffused atmospheric penumbra */
+      0 20px 38px -6px color-mix(in srgb, var(--depth-shadow) 55%, transparent),
+      /* 4. Deep directional cast shadow */
+      10px 34px 68px -12px color-mix(in srgb, var(--depth-shadow) 75%, transparent),
+      /* 5. Subtle accent halo */
+      0 0 24px -4px color-mix(in srgb, var(--cyan-glowing) 16%, transparent),
+      /* Crisp specular edges */
       inset 1px 1px 0 var(--depth-edge),
-      inset -1px -1px 0 var(--depth-shade),
-      12px 20px 44px -18px var(--depth-shadow),
-      0 0 0 1px color-mix(in srgb, var(--cyan-glowing) 10%, transparent);
+      inset -1px -1px 0 var(--depth-shade);
   }
 
   .surface-interactive:hover::before,
@@ -121,35 +171,248 @@ body {
     opacity: 1;
   }
 
+  .surface-interactive:hover::after,
+  .surface-interactive:focus-within::after {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+
   @media (hover: hover) and (prefers-reduced-motion: no-preference) {
     .surface-interactive:hover {
-      transform: translateY(-3px);
+      transform: translateY(-4px);
     }
   }
 
-  /* Buttons: small lift on hover, press on click. */
-  .press {
-    transition:
-      transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
-      background-color 0.2s ease,
-      border-color 0.2s ease,
-      color 0.2s ease,
-      box-shadow 0.2s ease,
-      opacity 0.2s ease;
+  /* Physical light wash falling across the top of cards */
+  .card-top-sheen {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 48%;
+    pointer-events: none;
+    z-index: 1;
+    border-radius: inherit;
+    background: linear-gradient(
+      180deg,
+      var(--sheen-soft) 0%,
+      transparent 100%
+    );
+    opacity: 0.4;
+    transition: opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1);
   }
-  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
-    .press:hover { transform: translateY(-1px); }
+  .surface-interactive:hover .card-top-sheen {
+    opacity: 0.8;
   }
-  .press:active { transform: translateY(0) scale(0.98); }
 
-  /* Underline that draws in from the left. */
+  /* Card wireframe layer: reveals where cursor hovers */
+  .wireframe-card-layer {
+    opacity: 0;
+    z-index: 0;
+    transition: opacity 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .surface-interactive:hover .wireframe-card-layer,
+  .surface-interactive:focus-within .wireframe-card-layer {
+    opacity: 1;
+  }
+
+  /* Global backdrop wireframe layer: subtle presence tracking mouse */
+  .wireframe-backdrop-layer {
+    opacity: calc(var(--cursor-active, 0) * 0.72);
+    transition: opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  /* Motion stream drifting across the grid */
+  .wireframe-stream-motion {
+    background-image: linear-gradient(
+      135deg,
+      transparent 0%,
+      var(--wireframe-pulse) 50%,
+      transparent 100%
+    );
+    background-size: 200% 200%;
+    animation: wireframe-stream 32s linear infinite;
+  }
+
+  /* Slow, purposeful radar pulse expanding from cursor */
+  .wireframe-radar-pulse {
+    border: 1px solid var(--wireframe-pulse);
+    animation: wireframe-ping 3.8s cubic-bezier(0.2, 0.8, 0.2, 1) infinite;
+    pointer-events: none;
+  }
+
+  /* Buttons: slow, purposeful lift on hover, specular light sweep, press on click. */
+  .press {
+    position: relative;
+    overflow: hidden;
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.35s ease,
+      border-color 0.35s ease,
+      color 0.35s ease,
+      box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.35s ease;
+  }
+
+  .press::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      105deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.24) 50%,
+      transparent 80%
+    );
+    transform: translateX(-100%);
+    transition: transform 0.95s cubic-bezier(0.22, 1, 0.36, 1);
+    pointer-events: none;
+  }
+
+  .press:hover::after {
+    transform: translateX(100%);
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .press:hover {
+      transform: translateY(-1.5px);
+      box-shadow: 0 4px 14px -2px var(--depth-shadow);
+    }
+  }
+  .press:active {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.1s;
+  }
+
+  /* Underline that draws in from the left with smooth cubic-bezier easing. */
   .link-draw {
     background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
-    transition: background-size 0.3s ease, color 0.2s ease;
+    transition:
+      background-size 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+      color 0.3s ease;
   }
   .link-draw:hover,
   .link-draw:focus-visible {
     background-size: 100% 1px;
+  }
+
+  /* Interactive keyword highlight */
+  .keyword-interactive {
+    position: relative;
+    display: inline;
+    border-radius: 4px;
+    padding: 0.1em 0.35em;
+    margin: -0.1em -0.15em;
+    font-weight: 500;
+    color: inherit;
+    background: transparent;
+    border: 1px solid transparent;
+    transition:
+      background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .keyword-interactive:hover {
+    color: var(--cyan-glowing);
+    background-color: color-mix(in srgb, var(--cyan-glowing) 10%, transparent);
+    border-color: color-mix(in srgb, var(--cyan-glowing) 30%, transparent);
+    box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--cyan-glowing) 20%, transparent);
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .keyword-interactive:hover {
+      transform: translateY(-1px);
+    }
+  }
+
+  /* Interactive tech chip / badge */
+  .tech-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 0.375rem;
+    border: 1px solid var(--glass-border);
+    background: color-mix(in srgb, var(--foreground) 3%, var(--background));
+    box-shadow:
+      inset 0 1px 0 var(--depth-edge),
+      0 1px 2px var(--depth-shade);
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      color 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .tech-chip:hover {
+    border-color: color-mix(in srgb, var(--cyan-glowing) 45%, var(--glass-border));
+    color: var(--cyan-glowing);
+    background: color-mix(in srgb, var(--cyan-glowing) 8%, var(--background));
+    box-shadow:
+      inset 0 1px 0 var(--depth-edge),
+      0 4px 12px -2px color-mix(in srgb, var(--cyan-glowing) 22%, transparent);
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .tech-chip:hover {
+      transform: translateY(-2px);
+    }
+  }
+
+  /* Interactive skill chip with illuminated beacon dot */
+  .skill-chip {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--glass-border);
+    background: color-mix(in srgb, var(--foreground) 3.5%, var(--background));
+    box-shadow:
+      inset 0 1px 0 var(--depth-edge),
+      0 1px 3px var(--depth-shade);
+    transition:
+      transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      background-color 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .skill-chip:hover {
+    border-color: color-mix(in srgb, var(--cyan-glowing) 50%, var(--glass-border));
+    background: color-mix(in srgb, var(--cyan-glowing) 10%, var(--background));
+    box-shadow:
+      inset 0 1px 0 var(--depth-edge),
+      0 6px 16px -3px color-mix(in srgb, var(--cyan-glowing) 25%, transparent);
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .skill-chip:hover {
+      transform: translateY(-2.5px);
+    }
+  }
+
+  /* Highlight item in project cards */
+  .highlight-item {
+    transition:
+      color 0.4s ease,
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .highlight-item:hover {
+    color: var(--foreground);
+    transform: translateX(3px);
+  }
+  .highlight-item .highlight-icon {
+    transition:
+      transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+      color 0.4s ease,
+      filter 0.4s ease;
+  }
+  .highlight-item:hover .highlight-icon {
+    transform: scale(1.18);
+    color: var(--cyan-glowing);
+    filter: drop-shadow(0 0 6px var(--cyan-glowing));
   }
 
   /* Website backdrop: accent light from the top-left over a fading dot grid. */
@@ -212,6 +475,24 @@ body {
 @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.6); opacity: 0; } }
 @keyframes rise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
 @keyframes reveal-up { from { opacity: 0; transform: translateY(28px) scale(0.985); } to { opacity: 1; transform: none; } }
+@keyframes wireframe-stream {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+@keyframes wireframe-ping {
+  0% {
+    transform: translate(-50%, -50%) scale(0.12);
+    opacity: 0.65;
+  }
+  65% {
+    opacity: 0.18;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 0;
+  }
+}
 
 @media (prefers-reduced-motion: no-preference) {
   /* Staggered entrance on load. Set --d for the delay. */
@@ -231,7 +512,7 @@ body {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .caret::after, .pulse-dot::after { animation: none; }
+  .caret::after, .pulse-dot::after, .wireframe-stream-motion, .wireframe-radar-pulse { animation: none; }
 }
 
 /* ── Theme switching ───────────────────────────────────────────────────────── */

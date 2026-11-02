@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Github, Star, Check } from "lucide-react";
 import { githubUrl, type Project } from "@/lib/projects";
+import WireframeSurface from "@/components/ui/WireframeSurface";
 
 /** A registry project plus pre-formatted live data (formatted on the server to avoid hydration drift). */
 export interface ProjectView extends Project {
@@ -120,13 +121,16 @@ export function FeaturedProjectCard({
   showCategory?: boolean;
 }) {
   return (
-    <article className="surface surface-interactive group flex h-full flex-col gap-4 rounded-2xl p-6">
-      <header className="flex items-start gap-4">
-        <div className="depth shrink-0 rounded-xl border border-glass-border bg-background p-2 transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-110">
+    <article className="surface surface-interactive group relative flex h-full flex-col gap-4 overflow-hidden rounded-2xl p-6">
+      <WireframeSurface variant="card" radius={320} />
+      <div className="card-top-sheen" aria-hidden="true" />
+
+      <header className="relative z-10 flex items-start gap-4">
+        <div className="depth shrink-0 rounded-xl border border-glass-border bg-background p-2 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6 group-hover:scale-110">
           <ProjectIcon project={project} size={32} />
         </div>
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold tracking-tight transition-colors group-hover:text-cyan-glowing">
+          <h3 className="text-lg font-semibold tracking-tight transition-colors duration-400 group-hover:text-cyan-glowing">
             <Link
               href={`/projects/${project.slug}`}
               className="after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none"
@@ -143,29 +147,29 @@ export function FeaturedProjectCard({
         )}
       </header>
 
-      <p className="border-l-2 border-cyan-glowing/40 pl-3 text-sm leading-relaxed text-foreground/80">
+      <p className="relative z-10 border-l-2 border-cyan-glowing/40 pl-3 text-sm leading-relaxed text-foreground/80">
         <span className="mb-0.5 block font-mono text-[11px] uppercase tracking-widest text-cyan-glowing/80">Why it exists</span>
         {project.why}
       </p>
 
-      <ul className="space-y-1.5 text-sm text-foreground/75">
+      <ul className="relative z-10 space-y-1.5 text-sm text-foreground/75">
         {project.highlights.map((h) => (
-          <li key={h} className="flex gap-2">
-            <Check size={15} className="mt-0.5 shrink-0 text-emerald-burnt" aria-hidden />
+          <li key={h} className="highlight-item flex gap-2">
+            <Check size={15} className="highlight-icon mt-0.5 shrink-0 text-emerald-burnt" aria-hidden />
             <span>{h}</span>
           </li>
         ))}
       </ul>
 
-      <ul className="flex flex-wrap gap-1.5" aria-label="Tech stack">
+      <ul className="relative z-10 flex flex-wrap gap-1.5" aria-label="Tech stack">
         {project.stack.map((s) => (
-          <li key={s} className="rounded border border-glass-border bg-background/50 px-2 py-0.5 font-mono text-[11px] text-foreground/70">
+          <li key={s} className="tech-chip px-2 py-0.5 font-mono text-[11px] text-foreground/75">
             {s}
           </li>
         ))}
       </ul>
 
-      <div className="mt-auto flex flex-col gap-3 pt-2">
+      <div className="relative z-10 mt-auto flex flex-col gap-3 pt-2">
         <Meta project={project} />
         {/* relative z-10 keeps buttons clickable above the card-wide link overlay */}
         <div className="relative z-10">
@@ -178,12 +182,15 @@ export function FeaturedProjectCard({
 
 export function CompactProjectCard({ project }: { project: ProjectView }) {
   return (
-    <article className="surface surface-interactive group flex h-full flex-col gap-3 rounded-xl p-4">
-      <header className="flex items-center gap-3">
-        <span className="shrink-0 transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-110">
+    <article className="surface surface-interactive group relative flex h-full flex-col gap-3 overflow-hidden rounded-xl p-4">
+      <WireframeSurface variant="card" radius={240} />
+      <div className="card-top-sheen" aria-hidden="true" />
+
+      <header className="relative z-10 flex items-center gap-3">
+        <span className="shrink-0 transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:-rotate-6 group-hover:scale-110">
           <ProjectIcon project={project} size={22} />
         </span>
-        <h3 className="min-w-0 truncate font-semibold transition-colors group-hover:text-cyan-glowing">
+        <h3 className="min-w-0 truncate font-semibold transition-colors duration-400 group-hover:text-cyan-glowing">
           <Link
             href={`/projects/${project.slug}`}
             className="after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none"
@@ -197,8 +204,8 @@ export function CompactProjectCard({ project }: { project: ProjectView }) {
           </span>
         )}
       </header>
-      <p className="text-sm text-foreground/70">{project.tagline}</p>
-      <div className="mt-auto flex flex-col gap-3">
+      <p className="relative z-10 text-sm text-foreground/70">{project.tagline}</p>
+      <div className="relative z-10 mt-auto flex flex-col gap-3">
         <Meta project={project} />
         <div className="relative z-10">
           <LinkRow project={project} compact />

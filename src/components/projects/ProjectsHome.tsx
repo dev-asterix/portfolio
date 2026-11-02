@@ -7,6 +7,7 @@ import { FeaturedProjectCard } from "@/components/projects/ProjectCards";
 import ProjectBrowser from "@/components/projects/ProjectBrowser";
 import { SiteHeader, SiteFooter, ContactLinks, SiteBackdrop, SectionHeading } from "@/components/projects/SiteChrome";
 import DefaultViewToggle from "@/components/projects/DefaultViewToggle";
+import WireframeSurface from "@/components/ui/WireframeSurface";
 
 /** The projects website. Rendered at "/" (default landing) and "/projects". */
 export default async function ProjectsHome() {
@@ -78,16 +79,19 @@ export default async function ProjectsHome() {
             className="rise max-w-2xl text-base leading-relaxed text-foreground/75 sm:text-lg"
             style={{ "--d": "270ms" } as React.CSSProperties}
           >
-            {SITE.description}
+            astrx.dev is home to <span className="keyword-interactive">open-source developer tools</span>, apps and
+            libraries — <span className="keyword-interactive">NexQL for PostgreSQL</span>, pacpad, drawdown and more.
+            Every product here is shipped and <span className="keyword-interactive">open source</span>.
           </p>
 
           <ul className="rise flex flex-wrap gap-2" aria-label="Product categories" style={{ "--d": "350ms" } as React.CSSProperties}>
             {categoryCounts.map((c) => (
               <li
                 key={c.name}
-                className="rounded-md border border-glass-border bg-background/50 px-2.5 py-1 font-mono text-xs text-foreground/70 transition-colors hover:border-cyan-glowing/40 hover:text-cyan-glowing"
+                className="skill-chip px-3 py-1 font-mono text-xs text-foreground/80 cursor-default"
               >
-                {c.name} · {c.count}
+                <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-cyan-glowing/70 transition-transform duration-300 group-hover:scale-125" />
+                {c.name} · <span className="opacity-60">{c.count}</span>
               </li>
             ))}
           </ul>
@@ -109,10 +113,12 @@ export default async function ProjectsHome() {
 
           {/* ── Desktop OS option ─────────────────────────────────────── */}
           <div
-            className="rise surface mt-4 flex flex-col gap-4 rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
+            className="rise surface surface-interactive group relative mt-4 flex flex-col gap-4 overflow-hidden rounded-2xl p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6"
             style={{ "--d": "520ms" } as React.CSSProperties}
           >
-            <div className="flex flex-col gap-1">
+            <WireframeSurface variant="card" radius={360} />
+            <div className="card-top-sheen" aria-hidden="true" />
+            <div className="relative z-10 flex flex-col gap-1">
               <p className="font-medium">Try them inside Asterix OS</p>
               <p className="text-sm text-foreground/65">
                 Asterix OS is a browser-based desktop where every product opens in its own window — with a terminal and
@@ -122,10 +128,10 @@ export default async function ProjectsHome() {
             </div>
             <Link
               href="/os"
-              className="press group inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-cyan-glowing px-4 py-2.5 text-sm font-semibold text-background shadow-[inset_1px_1px_0_rgba(255,255,255,0.35),6px_10px_24px_-10px_color-mix(in_srgb,var(--cyan-glowing)_60%,transparent)] hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glowing"
+              className="press group/btn relative z-10 inline-flex shrink-0 items-center justify-center gap-2 rounded-lg bg-cyan-glowing px-4 py-2.5 text-sm font-semibold text-background shadow-[inset_1px_1px_0_rgba(255,255,255,0.35),6px_10px_24px_-10px_color-mix(in_srgb,var(--cyan-glowing)_60%,transparent)] hover:opacity-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-glowing"
             >
               <Monitor size={16} aria-hidden /> Launch Asterix OS
-              <ArrowRight size={15} aria-hidden className="transition-transform duration-200 group-hover:translate-x-1" />
+              <ArrowRight size={15} aria-hidden className="transition-transform duration-300 group-hover/btn:translate-x-1" />
             </Link>
           </div>
         </section>
@@ -159,12 +165,14 @@ export default async function ProjectsHome() {
             </div>
           </div>
 
-          <div className="surface rounded-3xl p-3 sm:p-4">
-            <p className="flex items-center gap-2 px-2 pb-3 pt-1 font-mono text-xs text-foreground/55">
+          <div className="surface surface-interactive group relative overflow-hidden rounded-3xl p-3 sm:p-4">
+            <WireframeSurface variant="card" radius={420} />
+            <div className="card-top-sheen" aria-hidden="true" />
+            <p className="relative z-10 flex items-center gap-2 px-2 pb-3 pt-1 font-mono text-xs text-foreground/55">
               <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-cyan-glowing" />
               github.com/{nexql.org}
             </p>
-            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <ul className="relative z-10 grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
               {nexqlProjects.map((p, i) => (
                 <li key={p.slug} className={`reveal ${i === 0 ? "md:col-span-2 lg:col-span-1" : ""}`}>
                   <FeaturedProjectCard project={p} showCategory={false} />
@@ -189,28 +197,36 @@ export default async function ProjectsHome() {
 
         {/* ── Who's behind this ────────────────────────────────────────── */}
         <section aria-labelledby="maker-heading" className="reveal">
-          <div className="surface flex flex-col gap-4 rounded-2xl p-6 sm:p-8">
-            <SectionHeading index="03" id="maker-heading" title="Who's behind this" />
-            <p className="max-w-2xl leading-relaxed text-foreground/70">{SITE.maker.summary.join(" ")}</p>
-            <a
-              href={SITE.maker.url}
-              className="press depth group inline-flex w-fit items-center gap-1.5 rounded-lg border border-glass-border bg-background/60 px-3 py-2 text-sm font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
-            >
-              About {SITE.maker.name} on me.astrx.dev
-              <ArrowUpRight size={14} aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </a>
+          <div className="surface surface-interactive group relative flex flex-col gap-4 overflow-hidden rounded-2xl p-6 sm:p-8">
+            <WireframeSurface variant="card" radius={360} />
+            <div className="card-top-sheen" aria-hidden="true" />
+            <div className="relative z-10 flex flex-col gap-4">
+              <SectionHeading index="03" id="maker-heading" title="Who's behind this" />
+              <p className="max-w-2xl leading-relaxed text-foreground/70">{SITE.maker.summary.join(" ")}</p>
+              <a
+                href={SITE.maker.url}
+                className="press depth group inline-flex w-fit items-center gap-1.5 rounded-lg border border-glass-border bg-background/60 px-3 py-2 text-sm font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
+              >
+                About {SITE.maker.name} on me.astrx.dev
+                <ArrowUpRight size={14} aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
+            </div>
           </div>
         </section>
 
         {/* ── Contact ──────────────────────────────────────────────────── */}
         <section id="contact" aria-labelledby="contact-heading" className="reveal scroll-mt-20">
-          <div className="surface flex flex-col gap-5 rounded-2xl p-6 sm:p-10">
-            <SectionHeading index="04" id="contact-heading" title="Get in touch" />
-            <p className="max-w-2xl text-foreground/70">
-              Questions, bug reports or ideas for a product? Email us, or open an issue on the product&apos;s
-              GitHub repository.
-            </p>
-            <ContactLinks />
+          <div className="surface surface-interactive group relative flex flex-col gap-5 overflow-hidden rounded-2xl p-6 sm:p-10">
+            <WireframeSurface variant="card" radius={360} />
+            <div className="card-top-sheen" aria-hidden="true" />
+            <div className="relative z-10 flex flex-col gap-5">
+              <SectionHeading index="04" id="contact-heading" title="Get in touch" />
+              <p className="max-w-2xl text-foreground/70">
+                Questions, bug reports or ideas for a product? Email us, or open an issue on the product&apos;s
+                GitHub repository.
+              </p>
+              <ContactLinks />
+            </div>
           </div>
         </section>
       </main>

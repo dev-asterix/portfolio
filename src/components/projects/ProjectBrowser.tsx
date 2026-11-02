@@ -63,8 +63,8 @@ export default function ProjectBrowser({
               aria-pressed={filter === f}
               className={`press rounded-full border px-3 py-1 text-xs font-medium focus-visible:outline-2 focus-visible:outline-cyan-glowing ${
                 filter === f
-                  ? "depth border-cyan-glowing/60 bg-cyan-glowing/10 text-cyan-glowing"
-                  : "border-glass-border bg-background/50 text-foreground/65 hover:border-foreground/25 hover:text-foreground"
+                  ? "depth border-cyan-glowing/60 bg-cyan-glowing/15 text-cyan-glowing shadow-[0_2px_12px_-2px_color-mix(in_srgb,var(--cyan-glowing)_30%,transparent)]"
+                  : "border-glass-border bg-background/50 text-foreground/65 hover:border-cyan-glowing/40 hover:bg-background/80 hover:text-foreground"
               }`}
             >
               {f} <span className="opacity-60">{counts[f]}</span>
