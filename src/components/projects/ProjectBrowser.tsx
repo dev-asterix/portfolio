@@ -58,10 +58,10 @@ export default function ProjectBrowser({
               type="button"
               onClick={() => setFilter(f)}
               aria-pressed={filter === f}
-              className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-cyan-glowing ${
+              className={`press rounded-full border px-3 py-1 text-xs font-medium focus-visible:outline-2 focus-visible:outline-cyan-glowing ${
                 filter === f
-                  ? "border-cyan-glowing/60 bg-cyan-glowing/10 text-cyan-glowing"
-                  : "border-glass-border text-foreground/65 hover:text-foreground"
+                  ? "depth border-cyan-glowing/60 bg-cyan-glowing/10 text-cyan-glowing"
+                  : "border-glass-border bg-background/50 text-foreground/65 hover:border-foreground/25 hover:text-foreground"
               }`}
             >
               {f} <span className="opacity-60">{counts[f]}</span>
@@ -81,7 +81,7 @@ export default function ProjectBrowser({
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search name, stack…"
-              className="w-full rounded-md border border-glass-border bg-transparent py-1.5 pl-8 pr-3 text-sm placeholder:text-foreground/40 focus:border-cyan-glowing/60 focus:outline-none"
+              className="w-full rounded-md border border-glass-border bg-background/60 py-1.5 pl-8 pr-3 text-sm shadow-[inset_1px_1px_2px_var(--depth-shade)] transition-[border-color,box-shadow] placeholder:text-foreground/40 focus:border-cyan-glowing/60 focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--cyan-glowing)_15%,transparent)] focus:outline-none"
             />
           </label>
           <label>
@@ -89,7 +89,7 @@ export default function ProjectBrowser({
             <select
               value={sort}
               onChange={(e) => setSort(e.target.value as Sort)}
-              className="h-full rounded-md border border-glass-border bg-background px-2 text-sm text-foreground/80 focus:border-cyan-glowing/60 focus:outline-none"
+              className="h-full rounded-md border border-glass-border bg-background px-2 text-sm text-foreground/80 transition-colors hover:border-foreground/25 focus:border-cyan-glowing/60 focus:outline-none"
             >
               {(Object.keys(SORT_LABELS) as Sort[]).map((s) => (
                 <option key={s} value={s}>
@@ -108,7 +108,7 @@ export default function ProjectBrowser({
       {visible.length > 0 ? (
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {visible.map((p) => (
-            <li key={p.slug}>
+            <li key={p.slug} className="reveal">
               <CompactProjectCard project={p} />
             </li>
           ))}

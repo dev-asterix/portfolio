@@ -33,7 +33,7 @@
   --background:    #FAFAFA;
   --foreground:    #18181b;
   --emerald-burnt: #059669;
-  --cyan-glowing:  #0891b2;
+  --cyan-glowing:  #0e7490; /* cyan-700: ≥4.5:1 on light backgrounds */
   --glass-bg:      rgba(255, 255, 255, 0.72);
   --glass-border:  rgba(0, 0, 0, 0.09);
 }

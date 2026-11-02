@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import CustomCursor from "@/components/ui/CustomCursor";
+import SurfaceSpotlight from "@/components/ui/SurfaceSpotlight";
 import { PROFILE } from "@/lib/profile";
 
 const geistSans = Geist({
@@ -123,11 +124,11 @@ export default function RootLayout({
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="system"
           enableSystem
-          disableTransitionOnChange
         >
           <CustomCursor />
+          <SurfaceSpotlight />
           {children}
         </ThemeProvider>
       </body>

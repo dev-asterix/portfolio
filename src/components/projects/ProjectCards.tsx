@@ -76,7 +76,8 @@ function Meta({ project }: { project: ProjectView }) {
 
 function LinkRow({ project, compact = false }: { project: ProjectView; compact?: boolean }) {
   const btn =
-    "inline-flex items-center gap-1.5 rounded-md border border-glass-border px-3 py-1.5 text-xs font-medium transition-colors hover:border-cyan-glowing/50 hover:text-cyan-glowing focus-visible:outline-2 focus-visible:outline-cyan-glowing";
+    "press group/btn inline-flex items-center gap-1.5 rounded-md border border-glass-border bg-background/50 px-3 py-1.5 text-xs font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing focus-visible:outline-2 focus-visible:outline-cyan-glowing";
+  const arrow = "transition-transform duration-200 group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5";
   return (
     <div className="flex flex-wrap gap-2">
       {project.liveUrl && (
@@ -86,7 +87,7 @@ function LinkRow({ project, compact = false }: { project: ProjectView; compact?:
           rel="noopener noreferrer"
           className={`${btn} border-cyan-glowing/40 bg-cyan-glowing/10 text-cyan-glowing`}
         >
-          Visit site <ArrowUpRight size={13} aria-hidden />
+          Visit site <ArrowUpRight size={13} aria-hidden className={arrow} />
         </a>
       )}
       <a href={githubUrl(project)} target="_blank" rel="noopener noreferrer" className={btn}>
@@ -95,7 +96,7 @@ function LinkRow({ project, compact = false }: { project: ProjectView; compact?:
       {!compact &&
         project.links?.map((l) => (
           <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className={btn}>
-            {l.label} <ArrowUpRight size={13} aria-hidden />
+            {l.label} <ArrowUpRight size={13} aria-hidden className={arrow} />
           </a>
         ))}
     </div>
@@ -104,13 +105,13 @@ function LinkRow({ project, compact = false }: { project: ProjectView; compact?:
 
 export function FeaturedProjectCard({ project }: { project: ProjectView }) {
   return (
-    <article className="group relative flex flex-col gap-4 rounded-2xl border border-glass-border bg-foreground/[0.03] p-6 transition-colors hover:border-cyan-glowing/40 hover:bg-foreground/[0.05]">
+    <article className="surface surface-interactive group flex h-full flex-col gap-4 rounded-2xl p-6">
       <header className="flex items-start gap-4">
-        <div className="shrink-0 rounded-xl border border-glass-border bg-background p-2">
+        <div className="depth shrink-0 rounded-xl border border-glass-border bg-background p-2 transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-110">
           <ProjectIcon project={project} size={32} />
         </div>
         <div className="min-w-0">
-          <h3 className="text-lg font-semibold tracking-tight">
+          <h3 className="text-lg font-semibold tracking-tight transition-colors group-hover:text-cyan-glowing">
             <Link
               href={`/projects/${project.slug}`}
               className="after:absolute after:inset-0 after:rounded-2xl focus-visible:outline-none"
@@ -136,7 +137,7 @@ export function FeaturedProjectCard({ project }: { project: ProjectView }) {
 
       <ul className="flex flex-wrap gap-1.5" aria-label="Tech stack">
         {project.stack.map((s) => (
-          <li key={s} className="rounded bg-foreground/5 px-2 py-0.5 font-mono text-[11px] text-foreground/70">
+          <li key={s} className="rounded border border-glass-border bg-background/50 px-2 py-0.5 font-mono text-[11px] text-foreground/70">
             {s}
           </li>
         ))}
@@ -155,10 +156,12 @@ export function FeaturedProjectCard({ project }: { project: ProjectView }) {
 
 export function CompactProjectCard({ project }: { project: ProjectView }) {
   return (
-    <article className="relative flex h-full flex-col gap-3 rounded-xl border border-glass-border p-4 transition-colors hover:border-cyan-glowing/40 hover:bg-foreground/[0.03]">
+    <article className="surface surface-interactive group flex h-full flex-col gap-3 rounded-xl p-4">
       <header className="flex items-center gap-3">
-        <ProjectIcon project={project} size={22} />
-        <h3 className="min-w-0 truncate font-semibold">
+        <span className="shrink-0 transition-transform duration-500 ease-out group-hover:-rotate-6 group-hover:scale-110">
+          <ProjectIcon project={project} size={22} />
+        </span>
+        <h3 className="min-w-0 truncate font-semibold transition-colors group-hover:text-cyan-glowing">
           <Link
             href={`/projects/${project.slug}`}
             className="after:absolute after:inset-0 after:rounded-xl focus-visible:outline-none"

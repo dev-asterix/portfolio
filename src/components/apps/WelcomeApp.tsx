@@ -182,7 +182,7 @@ export default function WelcomeApp() {
                     maximized: true,
                   })
                 }
-                className="group flex items-center px-2 py-1 rounded-xl border border-glass-border bg-foreground/5 hover:bg-foreground/10 hover:border-cyan-glowing/50 transition-all text-left gap-4"
+                className="surface surface-interactive group flex items-center px-2 py-1 rounded-xl text-left gap-4"
               >
                 <div className="p-2 rounded-lg bg-background/50 border border-glass-border group-hover:scale-110 transition-transform shrink-0">
                   {entry.icon ? (
@@ -224,7 +224,7 @@ export default function WelcomeApp() {
             <button
               key={i}
               onClick={action.onClick}
-              className="group flex items-center p-2 rounded-xl border border-glass-border bg-foreground/5 hover:bg-foreground/10 hover:border-cyan-glowing/50 transition-all text-left gap-4"
+              className="surface surface-interactive group flex items-center p-2 rounded-xl text-left gap-4"
             >
               <div className="flex items-center gap-4 flex-1">
                 <div className="p-2 rounded-lg bg-background/50 border border-glass-border group-hover:scale-110 transition-transform shrink-0">

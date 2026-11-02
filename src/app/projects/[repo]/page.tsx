@@ -5,7 +5,7 @@ import { formatDistanceToNowStrict } from "date-fns";
 import { Star, GitFork, Clock, ArrowLeft, Github, Activity, ArrowUpRight, Check, Monitor } from "lucide-react";
 import LanguageBreakdown from "@/components/ui/LanguageBreakdown";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
-import { SiteHeader, SiteFooter } from "@/components/projects/SiteChrome";
+import { SiteHeader, SiteFooter, SiteBackdrop } from "@/components/projects/SiteChrome";
 import { fetchRepo, fetchReadme, fetchCommits, fetchLanguages } from "@/lib/github";
 import { PROJECTS, findProject, githubUrl, type Project } from "@/lib/projects";
 import { absolutizeReadmeUrls } from "@/lib/readmeUrls";
@@ -62,23 +62,27 @@ export default async function ProjectDetailPage({ params }: Params) {
   const sourceUrl = project ? githubUrl(project) : repo!.html_url;
 
   return (
-    <div className="min-h-screen bg-background font-sans text-foreground">
+    <div className="relative min-h-screen font-sans text-foreground">
+      <SiteBackdrop />
       <SiteHeader />
 
       <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <Link
           href="/projects"
-          className="mb-8 inline-flex items-center gap-2 text-sm text-foreground/60 transition-colors hover:text-cyan-glowing"
+          className="group mb-8 inline-flex items-center gap-2 text-sm text-foreground/60 transition-colors hover:text-cyan-glowing"
         >
-          <ArrowLeft size={16} aria-hidden /> All projects
+          <ArrowLeft size={16} aria-hidden className="transition-transform duration-200 group-hover:-translate-x-1" /> All projects
         </Link>
 
         {/* ── Header ───────────────────────────────────────────────────── */}
-        <header className="mb-10 flex flex-col gap-6">
+        <header className="rise mb-10 flex flex-col gap-6">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
             <div className="min-w-0 flex-1">
               {project && <p className="mb-2 font-mono text-xs text-foreground/50">{project.category}</p>}
-              <h1 className="text-3xl font-bold tracking-tight md:text-5xl">{name}</h1>
+              <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
+                {name}
+                <span aria-hidden className="text-cyan-glowing">.</span>
+              </h1>
               {tagline && <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/75">{tagline}</p>}
               {project?.description && (
                 <p className="mt-3 max-w-2xl leading-relaxed text-foreground/65">{project.description}</p>
@@ -91,7 +95,7 @@ export default async function ProjectDetailPage({ params }: Params) {
                   href={liveUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-cyan-glowing bg-cyan-glowing px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-transparent hover:text-cyan-glowing"
+                  className="press inline-flex items-center gap-2 rounded-lg border border-cyan-glowing bg-cyan-glowing px-4 py-2 text-sm font-medium text-background shadow-[inset_1px_1px_0_rgba(255,255,255,0.35),6px_10px_24px_-10px_color-mix(in_srgb,var(--cyan-glowing)_60%,transparent)] hover:opacity-90"
                 >
                   Visit site <ArrowUpRight size={15} aria-hidden />
                 </a>
@@ -100,7 +104,7 @@ export default async function ProjectDetailPage({ params }: Params) {
                 href={sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-glass-border bg-foreground/5 px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/10"
+                className="press depth inline-flex items-center gap-2 rounded-lg border border-glass-border bg-background/60 px-4 py-2 text-sm font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
               >
                 <Github size={15} aria-hidden /> Source
               </a>
@@ -110,7 +114,7 @@ export default async function ProjectDetailPage({ params }: Params) {
                   href={l.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg border border-glass-border bg-foreground/5 px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/10"
+                  className="press depth inline-flex items-center gap-2 rounded-lg border border-glass-border bg-background/60 px-4 py-2 text-sm font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
                 >
                   {l.label} <ArrowUpRight size={15} aria-hidden />
                 </a>
@@ -119,7 +123,7 @@ export default async function ProjectDetailPage({ params }: Params) {
           </div>
 
           {repo && (
-            <dl className="flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl border border-glass-border bg-foreground/5 p-4 text-sm">
+            <dl className="surface flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl p-4 text-sm">
               <div className="flex items-center gap-1.5">
                 <Star size={16} className="text-amber-400" aria-hidden />
                 <dt className="sr-only">Stars</dt>
@@ -151,9 +155,14 @@ export default async function ProjectDetailPage({ params }: Params) {
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
           {/* ── README ─────────────────────────────────────────────────── */}
           <div className="min-w-0 lg:col-span-2">
-            <section aria-label="README" className="overflow-hidden rounded-xl border border-glass-border">
-              <div className="border-b border-glass-border bg-foreground/5 px-5 py-2.5 font-mono text-xs text-foreground/50">
-                README.md
+            <section aria-label="README" className="surface reveal overflow-hidden rounded-xl">
+              <div className="flex items-center gap-2 border-b border-glass-border px-5 py-2.5 font-mono text-xs text-foreground/50">
+                <span aria-hidden className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
+                </span>
+                <span className="ml-2">README.md</span>
               </div>
               <div className="p-5 md:p-8">
                 {readme ? (
@@ -174,7 +183,7 @@ export default async function ProjectDetailPage({ params }: Params) {
           {/* ── Sidebar ────────────────────────────────────────────────── */}
           <aside className="flex flex-col gap-6">
             {project && (
-              <section aria-labelledby="highlights" className="rounded-xl border border-glass-border p-5">
+              <section aria-labelledby="highlights" className="surface reveal rounded-xl p-5">
                 <h2 id="highlights" className="mb-3 font-semibold">
                   Highlights
                 </h2>
@@ -188,7 +197,7 @@ export default async function ProjectDetailPage({ params }: Params) {
                 </ul>
                 <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Tech stack">
                   {project.stack.map((s) => (
-                    <li key={s} className="rounded bg-foreground/5 px-2 py-0.5 font-mono text-[11px] text-foreground/70">
+                    <li key={s} className="rounded border border-glass-border bg-background/50 px-2 py-0.5 font-mono text-[11px] text-foreground/70">
                       {s}
                     </li>
                   ))}
@@ -196,7 +205,7 @@ export default async function ProjectDetailPage({ params }: Params) {
               </section>
             )}
 
-            <section aria-labelledby="activity" className="rounded-xl border border-glass-border p-5">
+            <section aria-labelledby="activity" className="surface reveal rounded-xl p-5">
               <h2 id="activity" className="mb-4 flex items-center gap-2 font-semibold">
                 <Activity size={17} className="text-cyan-glowing" aria-hidden /> Recent commits
               </h2>
@@ -225,7 +234,7 @@ export default async function ProjectDetailPage({ params }: Params) {
 
             <Link
               href="/os"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-glass-border p-4 text-sm text-foreground/70 transition-colors hover:border-cyan-glowing/50 hover:text-cyan-glowing"
+              className="surface surface-interactive inline-flex items-center justify-center gap-2 rounded-xl p-4 text-sm text-foreground/70 hover:text-cyan-glowing"
             >
               <Monitor size={16} aria-hidden /> Explore the code in the desktop OS
             </Link>

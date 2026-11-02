@@ -338,14 +338,13 @@ export default function Window({
         style={{
           zIndex,
           ...(isSnapped ? snappedStyle : { x: pos.x, y: pos.y, width: size.w, height: size.h, position: "fixed" }),
-          // Active: vibrant cyan glow. Inactive: dimmed, but lighter in light theme.
+          // Light source is top-left: bright top/left edge, shadow cast down-right.
+          // Active windows sit "higher" (longer shadow) with an accent ring.
           boxShadow: isActive
-            ? "0 0 0 1px rgba(34,211,238,0.35), 0 24px 48px rgba(0,0,0,0.6), 0 0 30px rgba(34,211,238,0.08)"
-            : (currentTheme === "dark"
-              ? "0 12px 32px rgba(0,0,0,0.4)"
-              : "0 8px 20px rgba(0,0,0,0.12)"),
+            ? "inset 1px 1px 0 var(--depth-edge), 0 0 0 1px color-mix(in srgb, var(--cyan-glowing) 35%, transparent), 16px 28px 56px -14px var(--depth-shadow), 0 0 30px color-mix(in srgb, var(--cyan-glowing) 8%, transparent)"
+            : "inset 1px 1px 0 var(--depth-edge), 8px 14px 32px -12px var(--depth-shadow)",
           filter: isActive ? "none" : (currentTheme === "dark" ? "brightness(0.80)" : "brightness(0.96)"),
-          transition: "box-shadow 0.2s, filter 0.2s",
+          transition: "box-shadow 0.3s ease, filter 0.3s ease",
         }}
         className={cn(
           "glass overflow-hidden flex flex-col border border-glass-border",
@@ -353,6 +352,13 @@ export default function Window({
           !isSnapped && className,
         )}
       >
+        {/* ── Top-left glare: the shared light source, for depth ── */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-[45] rounded-[inherit]"
+          style={{ background: "radial-gradient(110% 65% at 0% 0%, var(--depth-glare), transparent 50%)" }}
+        />
+
         {/* ── Title Bar ── */}
         {isMobile ? (
           /* Mobile: slim bar — app title + close button only */

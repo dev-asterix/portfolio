@@ -60,7 +60,15 @@ for the interactive in-OS demo). Name, bio and contact links live in `src/lib/pr
 | **Properties** | System info panel. |
 
 ### 🎨 Design
-- Carbon-dark theme with `cyan-glowing` and `emerald-burnt` accent palette.
+- **Light & dark modes** — follows the system by default; Light / System / Dark switch on the website, sun/moon toggle in
+  the OS menu bar (they share one setting). Switching animates as a circular reveal from the control you clicked
+  (View Transitions API), with a colour cross-fade fallback and an instant swap for reduced-motion users.
+- **One light source, top-left** — surfaces (`.surface`, `.depth` in `globals.css`) get a bright top/left edge, a soft
+  corner glow and a shadow cast down-right; OS windows add a faint glare. Tuned per mode via `--depth-*` variables.
+- **Hover & motion** — cards lift with an accent edge and a cursor-following spotlight (`SurfaceSpotlight`); buttons
+  lift and press; staggered entrance on load and CSS scroll-reveal (`.rise`, `.reveal`), all disabled under
+  `prefers-reduced-motion`.
+- Carbon theme with `cyan-glowing` and `emerald-burnt` accent palette.
 - Glassmorphism window chrome.
 - Framer Motion animations throughout.
 - CRT scanlines, vignette, custom cursor.

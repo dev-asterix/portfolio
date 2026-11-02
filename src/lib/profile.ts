@@ -12,6 +12,10 @@ export const PROFILE = {
     "I design and build high-throughput backend systems and the developer tools around them — " +
     "mostly cloud-native, close to the database, and obsessed with performance.",
   focus: ["Go", "PostgreSQL", "TypeScript", "Rust", "Distributed systems"],
+  /** "Currently building" status pill on the website. Keep it current. */
+  now: "Currently building NexQL & NexQL MCP",
+  /** Footer sign-off. */
+  signoff: "Built with too much coffee and EXPLAIN ANALYZE.",
   siteUrl: "https://astrx.dev",
   email: "support@astrx.dev",
   links: {
