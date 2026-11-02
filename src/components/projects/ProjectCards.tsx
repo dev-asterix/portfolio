@@ -143,6 +143,11 @@ export function FeaturedProjectCard({
         )}
       </header>
 
+      <p className="border-l-2 border-cyan-glowing/40 pl-3 text-sm leading-relaxed text-foreground/80">
+        <span className="mb-0.5 block font-mono text-[11px] uppercase tracking-widest text-cyan-glowing/80">Why it exists</span>
+        {project.why}
+      </p>
+
       <ul className="space-y-1.5 text-sm text-foreground/75">
         {project.highlights.map((h) => (
           <li key={h} className="flex gap-2">
