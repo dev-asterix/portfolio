@@ -5,7 +5,7 @@ export const revalidate = 3600; // Cache for 1 hour (expensive to compute)
 
 export async function GET() {
   try {
-    const metrics = await portfolioMetrics('dev-asterix');
+    const metrics = await portfolioMetrics();
     return NextResponse.json(metrics, {
       headers: {
         'Cache-Control': 's-maxage=3600, stale-while-revalidate=7200'

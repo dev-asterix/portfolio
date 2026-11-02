@@ -1,257 +1,248 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { use } from "react";
-import { notFound, useRouter } from "next/navigation";
-import { Star, GitFork, Eye, Clock, ArrowLeft, Github, Activity, Terminal } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { formatDistanceToNow } from "date-fns";
+import { notFound, permanentRedirect } from "next/navigation";
+import { formatDistanceToNowStrict } from "date-fns";
+import { Star, GitFork, Clock, ArrowLeft, Github, Activity, ArrowUpRight, Check, Monitor } from "lucide-react";
 import LanguageBreakdown from "@/components/ui/LanguageBreakdown";
 import MarkdownRenderer from "@/components/ui/MarkdownRenderer";
+import { SiteHeader, SiteFooter, SiteBackdrop } from "@/components/projects/SiteChrome";
+import { fetchRepo, fetchReadme, fetchCommits, fetchLanguages } from "@/lib/github";
+import { PROJECTS, findProject, githubUrl, type Project } from "@/lib/projects";
+import { absolutizeReadmeUrls } from "@/lib/readmeUrls";
 
-interface RepoData {
-  repo: any;
-  readme: string | null;
-  commits: any[];
-  languages: Record<string, number>;
+export const revalidate = 3600;
+
+type Params = { params: Promise<{ repo: string }> };
+
+export function generateStaticParams() {
+  return PROJECTS.map((p) => ({ repo: p.slug }));
 }
 
-export default function RepoDetail({ params }: { params: Promise<{ repo: string }> }) {
-  const resolvedParams = use(params);
-  const repoName = resolvedParams.repo;
-  const router = useRouter();
+/** Registry entry, or a minimal stand-in for any other public dev-asterix repo. */
+function resolve(key: string): { project: Project | undefined; owner: string; repo: string } {
+  const project = findProject(key);
+  if (project) return { project, owner: project.owner, repo: project.repo };
+  return { project: undefined, owner: "dev-asterix", repo: decodeURIComponent(key) };
+}
 
-  const [data, setData] = useState<RepoData | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch(`/api/github/repo/${repoName}`);
-        if (!res.ok) {
-          if (res.status === 404) {
-            router.push('/404');
-            return;
-          }
-          throw new Error("Failed to fetch");
-        }
-        const json = await res.json();
-        setData(json);
-      } catch (err) {
-        console.error(err);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-  }, [repoName, router]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background text-foreground font-sans p-4 md:p-8 lg:p-12 pb-24 max-w-5xl mx-auto animate-pulse flex flex-col gap-12">
-        <div className="h-6 w-32 bg-foreground/10 rounded"></div>
-        <div className="h-16 w-full max-w-xl bg-foreground/10 rounded"></div>
-        <div className="h-12 w-full bg-foreground/10 rounded"></div>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-          <div className="lg:col-span-2 h-96 bg-foreground/10 rounded"></div>
-          <div className="h-96 bg-foreground/10 rounded"></div>
-        </div>
-      </div>
-    );
+export async function generateMetadata({ params }: Params): Promise<Metadata> {
+  const { repo: key } = await params;
+  const { project, owner, repo } = resolve(key);
+  if (project) {
+    return {
+      title: project.name,
+      description: `${project.tagline} ${project.description}`.slice(0, 300),
+      alternates: { canonical: `/projects/${project.slug}` },
+    };
   }
+  const gh = await fetchRepo(owner, repo);
+  return gh ? { title: gh.name, description: gh.description ?? undefined } : { title: "Project not found" };
+}
 
-  if (error || !data || !data.repo) {
-    return (
-      <div className="min-h-screen bg-background text-foreground flex items-center justify-center font-mono">
-        <div className="text-center">
-          <h1 className="text-4xl text-red-500 mb-4">Error</h1>
-          <p className="text-foreground/60 mb-8">Failed to load repository data.</p>
-          <Link href="/" className="px-4 py-2 bg-foreground/10 hover:bg-foreground/20 rounded transition-colors">
-            Return Home
-          </Link>
-        </div>
-      </div>
-    );
-  }
+export default async function ProjectDetailPage({ params }: Params) {
+  const { repo: key } = await params;
+  const { project, owner, repo: repoName } = resolve(key);
 
-  const { repo, readme, commits, languages } = data;
+  // Canonicalise legacy URLs (/projects/PgStudio → /projects/nexql)
+  if (project && key !== project.slug) permanentRedirect(`/projects/${project.slug}`);
+
+  const [repo, readme, commits, languages] = await Promise.all([
+    fetchRepo(owner, repoName),
+    fetchReadme(owner, repoName),
+    fetchCommits(owner, repoName, 6),
+    fetchLanguages(owner, repoName),
+  ]);
+
+  // Registry projects always render (even if GitHub is down); unknown repos need GitHub.
+  if (!project && !repo) notFound();
+
+  const name = project?.name ?? repo!.name;
+  const tagline = project?.tagline ?? repo?.description ?? "";
+  const liveUrl = project?.liveUrl ?? repo?.homepage ?? undefined;
+  const sourceUrl = project ? githubUrl(project) : repo!.html_url;
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans p-4 md:p-8 lg:p-12 pb-24 max-w-5xl mx-auto selection:bg-cyan-glowing/30">
+    <div className="relative min-h-screen font-sans text-foreground">
+      <SiteBackdrop />
+      <SiteHeader />
 
-      {/* Navigation */}
-      <nav className="mb-12 border-b border-glass-border pb-4 flex items-center justify-between">
+      <main id="main" className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
         <Link
-          href="/"
-          className="flex items-center gap-2 text-foreground/60 hover:text-cyan-glowing transition-colors font-mono text-sm"
+          href="/projects"
+          className="group mb-8 inline-flex items-center gap-2 text-sm text-foreground/60 transition-colors hover:text-cyan-glowing"
         >
-          <ArrowLeft size={16} />
-          <span>cd ..</span>
+          <ArrowLeft size={16} aria-hidden className="transition-transform duration-200 group-hover:-translate-x-1" /> All projects
         </Link>
-        <div className="font-mono text-xs text-foreground/40 hidden sm:block">
-          /projects/{repoName}
-        </div>
-      </nav>
 
-      {/* Header */}
-      <header className="mb-12">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 mb-6">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-2">
-              <Terminal className="text-emerald-burnt" size={28} />
-              <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-transparent bg-clip-text bg-linear-to-r from-foreground to-foreground/70">
-                {repo.name}
+        {/* ── Header ───────────────────────────────────────────────────── */}
+        <header className="rise mb-10 flex flex-col gap-6">
+          <div className="flex flex-col justify-between gap-6 md:flex-row md:items-start">
+            <div className="min-w-0 flex-1">
+              {project && <p className="mb-2 font-mono text-xs text-foreground/50">{project.category}</p>}
+              <h1 className="text-3xl font-bold tracking-tight md:text-5xl">
+                {name}
+                <span aria-hidden className="text-cyan-glowing">.</span>
               </h1>
+              {tagline && <p className="mt-3 max-w-2xl text-lg leading-relaxed text-foreground/75">{tagline}</p>}
+              {project?.description && (
+                <p className="mt-3 max-w-2xl leading-relaxed text-foreground/65">{project.description}</p>
+              )}
             </div>
-            {repo.description && (
-              <p className="text-lg text-foreground/70 max-w-2xl mt-4 leading-relaxed">
-                {repo.description}
-              </p>
-            )}
 
-            {/* Language Breakdown Bar */}
-            <div className="mt-6 max-w-2xl">
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {liveUrl && (
+                <a
+                  href={liveUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="press inline-flex items-center gap-2 rounded-lg border border-cyan-glowing bg-cyan-glowing px-4 py-2 text-sm font-medium text-background shadow-[inset_1px_1px_0_rgba(255,255,255,0.35),6px_10px_24px_-10px_color-mix(in_srgb,var(--cyan-glowing)_60%,transparent)] hover:opacity-90"
+                >
+                  Visit site <ArrowUpRight size={15} aria-hidden />
+                </a>
+              )}
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="press depth inline-flex items-center gap-2 rounded-lg border border-glass-border bg-background/60 px-4 py-2 text-sm font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
+              >
+                <Github size={15} aria-hidden /> Source
+              </a>
+              {project?.links?.map((l) => (
+                <a
+                  key={l.url}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="press depth inline-flex items-center gap-2 rounded-lg border border-glass-border bg-background/60 px-4 py-2 text-sm font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
+                >
+                  {l.label} <ArrowUpRight size={15} aria-hidden />
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {repo && (
+            <dl className="surface flex flex-wrap items-center gap-x-6 gap-y-2 rounded-xl p-4 text-sm">
+              <div className="flex items-center gap-1.5">
+                <Star size={16} className="text-amber-400" aria-hidden />
+                <dt className="sr-only">Stars</dt>
+                <dd className="font-mono">{repo.stargazers_count}</dd>
+                <span className="hidden text-foreground/50 sm:inline">stars</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <GitFork size={16} className="text-cyan-glowing" aria-hidden />
+                <dt className="sr-only">Forks</dt>
+                <dd className="font-mono">{repo.forks_count}</dd>
+                <span className="hidden text-foreground/50 sm:inline">forks</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-foreground/65">
+                <Clock size={16} aria-hidden />
+                <dt className="sr-only">Last push</dt>
+                <dd>Updated {formatDistanceToNowStrict(new Date(repo.pushed_at), { addSuffix: true })}</dd>
+              </div>
+              {repo.archived && <dd className="text-amber-500">Archived</dd>}
+            </dl>
+          )}
+
+          {Object.keys(languages).length > 0 && (
+            <div className="max-w-2xl">
               <LanguageBreakdown languages={languages} />
             </div>
+          )}
+        </header>
+
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-3">
+          {/* ── README ─────────────────────────────────────────────────── */}
+          <div className="min-w-0 lg:col-span-2">
+            <section aria-label="README" className="surface reveal overflow-hidden rounded-xl">
+              <div className="flex items-center gap-2 border-b border-glass-border px-5 py-2.5 font-mono text-xs text-foreground/50">
+                <span aria-hidden className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-red-500/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-green-500/70" />
+                </span>
+                <span className="ml-2">README.md</span>
+              </div>
+              <div className="p-5 md:p-8">
+                {readme ? (
+                  <MarkdownRenderer content={absolutizeReadmeUrls(readme, owner, repoName)} />
+                ) : (
+                  <p className="py-8 text-center text-sm text-foreground/55">
+                    README unavailable right now —{" "}
+                    <a href={sourceUrl} className="text-cyan-glowing hover:underline">
+                      read it on GitHub
+                    </a>
+                    .
+                  </p>
+                )}
+              </div>
+            </section>
           </div>
 
-          <div className="flex gap-3 shrink-0">
-            {repo.homepage && (
-              <a
-                href={repo.homepage}
-                target="_blank"
-                rel="noreferrer"
-                className="px-4 py-2 rounded-lg bg-cyan-glowing border border-cyan-glowing hover:bg-transparent hover:text-cyan-glowing text-background font-medium transition-all text-sm flex items-center gap-2 shadow-[0_0_15px_rgba(0,173,216,0.2)]"
-              >
-                Live Demo
-              </a>
+          {/* ── Sidebar ────────────────────────────────────────────────── */}
+          <aside className="flex flex-col gap-6">
+            {project && (
+              <section aria-labelledby="highlights" className="surface reveal rounded-xl p-5">
+                <h2 id="highlights" className="mb-3 font-semibold">
+                  Highlights
+                </h2>
+                <ul className="space-y-2 text-sm text-foreground/75">
+                  {project.highlights.map((h) => (
+                    <li key={h} className="flex gap-2">
+                      <Check size={15} className="mt-0.5 shrink-0 text-emerald-burnt" aria-hidden />
+                      {h}
+                    </li>
+                  ))}
+                </ul>
+                <ul className="mt-4 flex flex-wrap gap-1.5" aria-label="Tech stack">
+                  {project.stack.map((s) => (
+                    <li key={s} className="rounded border border-glass-border bg-background/50 px-2 py-0.5 font-mono text-[11px] text-foreground/70">
+                      {s}
+                    </li>
+                  ))}
+                </ul>
+              </section>
             )}
-            <a
-              href={repo.html_url}
-              target="_blank"
-              rel="noreferrer"
-              className="px-4 py-2 rounded-lg bg-foreground/5 border border-glass-border hover:bg-foreground/10 text-foreground font-medium transition-all text-sm flex items-center gap-2"
-            >
-              <Github size={16} />
-              Repository
-            </a>
-          </div>
-        </div>
 
-        {/* Stats & Metadata Row */}
-        <div className="flex flex-wrap items-center gap-4 text-sm bg-foreground/5 border border-glass-border rounded-xl p-4">
-          <div className="flex items-center gap-1.5 text-foreground/80 pr-4 border-r border-glass-border/50">
-            <Star size={16} className="text-amber-400" />
-            <span className="font-mono font-medium">{repo.stargazers_count}</span>
-            <span className="text-foreground/50 hidden sm:inline">stars</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-foreground/80 pr-4 border-r border-glass-border/50">
-            <GitFork size={16} className="text-cyan-glowing" />
-            <span className="font-mono font-medium">{repo.forks_count}</span>
-            <span className="text-foreground/50 hidden sm:inline">forks</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-foreground/80 pr-4 border-r border-glass-border/50">
-            <Eye size={16} className="text-emerald-500" />
-            <span className="font-mono font-medium">{repo.watchers_count}</span>
-            <span className="text-foreground/50 hidden sm:inline">watchers</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-foreground/60">
-            <Clock size={16} />
-            <span>Updated {repo.updated_at ? formatDistanceToNow(new Date(repo.updated_at)) : 'unknown'} ago</span>
-          </div>
-        </div>
-
-        {/* Topics */}
-        {repo.topics && repo.topics.length > 0 && (
-          <div className="mt-6 flex flex-wrap gap-2">
-            {repo.topics.map((topic: string) => (
-              <span key={topic} className="px-3 py-1 rounded-full text-xs font-mono bg-cyan-glowing/10 text-cyan-glowing border border-cyan-glowing/20">
-                {topic}
-              </span>
-            ))}
-          </div>
-        )}
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-        {/* Main Content - README */}
-        <div className="lg:col-span-2 space-y-8">
-          <div className="rounded-xl border border-glass-border bg-[#0a0a0a]/50 backdrop-blur-sm overflow-hidden shadow-2xl">
-            <div className="bg-foreground/5 border-b border-glass-border px-6 py-3 flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-amber-500/80"></div>
-              <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
-              <span className="ml-4 font-mono text-xs text-foreground/40">README.md</span>
-            </div>
-            <div className="p-6 md:p-8">
-              {readme ? (
-                <MarkdownRenderer content={readme} />
+            <section aria-labelledby="activity" className="surface reveal rounded-xl p-5">
+              <h2 id="activity" className="mb-4 flex items-center gap-2 font-semibold">
+                <Activity size={17} className="text-cyan-glowing" aria-hidden /> Recent commits
+              </h2>
+              {commits.length > 0 ? (
+                <ol className="space-y-4">
+                  {commits.map((c) => (
+                    <li key={c.sha} className="min-w-0">
+                      <p className="truncate text-sm text-foreground/90" title={c.commit.message}>
+                        {c.commit.message.split("\n")[0]}
+                      </p>
+                      <p className="mt-0.5 font-mono text-xs text-foreground/50">
+                        <a href={c.html_url} target="_blank" rel="noopener noreferrer" className="text-cyan-glowing hover:underline">
+                          {c.sha.substring(0, 7)}
+                        </a>
+                        {c.commit.author?.date && (
+                          <> · {formatDistanceToNowStrict(new Date(c.commit.author.date), { addSuffix: true })}</>
+                        )}
+                      </p>
+                    </li>
+                  ))}
+                </ol>
               ) : (
-                <p className="text-foreground/50 italic font-mono text-sm py-8 text-center">
-                  No README.md found in remote repository.
-                </p>
+                <p className="text-sm text-foreground/55">Commit history unavailable right now.</p>
               )}
-            </div>
-          </div>
+            </section>
+
+            <Link
+              href="/os"
+              className="surface surface-interactive inline-flex items-center justify-center gap-2 rounded-xl p-4 text-sm text-foreground/70 hover:text-cyan-glowing"
+            >
+              <Monitor size={16} aria-hidden /> Explore the code in the desktop OS
+            </Link>
+          </aside>
         </div>
+      </main>
 
-        {/* Sidebar */}
-        <div className="space-y-8">
-          {/* Recent Commits */}
-          <div className="rounded-xl border border-glass-border bg-foreground/5 p-6">
-            <div className="flex items-center gap-2 mb-6">
-              <Activity className="text-cyan-glowing" size={18} />
-              <h3 className="font-semibold">Recent Activity</h3>
-            </div>
-
-            <div className="space-y-6 relative before:absolute before:inset-0 before:ml-[9px] before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-linear-to-b before:from-transparent before:via-glass-border before:to-transparent">
-              {commits && commits.length > 0 ? commits.map((commit: any) => (
-                <div key={commit.sha} className="relative flex items-start gap-4 z-10">
-                  <div className="w-5 h-5 mt-0.5 shrink-0 rounded-full bg-background border-2 border-emerald-burnt/80 shadow-[0_0_10px_rgba(239,68,68,0.2)]"></div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-foreground/90 font-medium truncate" title={commit.commit.message}>
-                      {commit.commit.message.split('\n')[0]}
-                    </p>
-                    <div className="flex items-center gap-2 mt-1 font-mono text-xs text-foreground/50">
-                      <a href={commit.html_url} target="_blank" rel="noreferrer" className="text-cyan-glowing hover:underline">
-                        {commit.sha.substring(0, 7)}
-                      </a>
-                      <span>•</span>
-                      <span>{commit.commit.author?.date ? formatDistanceToNow(new Date(commit.commit.author.date), { addSuffix: true }) : 'unknown'}</span>
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="text-sm text-foreground/50 font-mono italic px-4">No recent commits.</div>
-              )}
-            </div>
-          </div>
-
-          {/* Architecture Summary / Extra Info */}
-          <div className="rounded-xl border border-glass-border bg-foreground/5 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <GitFork className="text-cyan-glowing" size={18} />
-              <h3 className="font-semibold">Repository Details</h3>
-            </div>
-            <div className="space-y-3 font-mono text-sm">
-              <div className="flex justify-between">
-                <span className="text-foreground/50">Size</span>
-                <span className="text-foreground/90">{repo.size ? (repo.size / 1024).toFixed(2) : 0} MB</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/50">Branch</span>
-                <span className="text-foreground/90">{repo.default_branch || 'main'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-foreground/50">Created</span>
-                <span className="text-foreground/90">{repo.created_at ? new Date(repo.created_at).toLocaleDateString() : 'unknown'}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <SiteFooter />
     </div>
   );
 }

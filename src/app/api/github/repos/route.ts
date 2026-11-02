@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchAllReposEnriched } from '@/lib/githubAggregator';
-import { fetchRepos } from '@/lib/github';
+import { getShowcaseRepos } from '@/lib/projectStats';
 
 export const revalidate = 1800; // Cache for 30 minutes
 
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   try {
     if (enriched) {
       // Return deeply enriched repos with activity, stack, metrics
-      const repos = await fetchAllReposEnriched('dev-asterix', !includeForks, !includeForks);
+      const repos = await fetchAllReposEnriched(!includeForks, !includeForks);
       return NextResponse.json(repos, {
         headers: {
           'Cache-Control': 's-maxage=1800, stale-while-revalidate=3600'
@@ -20,8 +20,8 @@ export async function GET(request: Request) {
       });
     }
 
-    // Return lightweight repo list (backward compatibility)
-    const allRepos = await fetchRepos('dev-asterix');
+    // The curated project list across all owners (same as the website).
+    const allRepos = await getShowcaseRepos();
 
     let filtered = allRepos;
     if (!includeForks) {
@@ -34,6 +34,10 @@ export async function GET(request: Request) {
       name: repo.name,
       description: repo.description,
       html_url: repo.html_url,
+      homepage: repo.homepage,
+      owner: repo.owner,
+      full_name: repo.full_name,
+      created_at: repo.created_at,
       stargazers_count: repo.stargazers_count,
       language: repo.language,
       topics: repo.topics,

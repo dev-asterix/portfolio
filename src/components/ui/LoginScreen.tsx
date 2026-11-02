@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, LogIn } from "lucide-react";
@@ -150,8 +151,16 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
         </AnimatePresence>
       </div>
 
-      <div className="absolute bottom-8 text-foreground/40 text-xs tracking-widest uppercase text-center w-full select-none z-10">
-        Asterix OS v2.0 — Quantum Engine
+      <div className="absolute bottom-8 flex flex-col items-center gap-4 w-full z-10 px-4">
+        <Link
+          href="/projects"
+          className="text-sm text-foreground/60 hover:text-cyan-glowing underline-offset-4 hover:underline transition-colors"
+        >
+          In a hurry? Switch to the projects website →
+        </Link>
+        <span className="text-foreground/40 text-xs tracking-widest uppercase text-center select-none">
+          Asterix OS v2.0 — Quantum Engine
+        </span>
       </div>
 
       <style dangerouslySetInnerHTML={{

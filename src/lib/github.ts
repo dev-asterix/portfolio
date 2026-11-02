@@ -16,6 +16,9 @@ export interface GitHubRepo {
   forks_count: number;
   default_branch: string;
   archived: boolean;
+  /** Present on GitHub API responses; the OS uses it to show where a project lives. */
+  owner?: { login: string };
+  full_name?: string;
 }
 
 const GITHUB_TOKEN = process.env.GITHUB_TOKEN;

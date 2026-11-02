@@ -1,7 +1,10 @@
+import Link from "next/link";
 import { useEffect, useMemo } from "react";
 import { useOSStore } from "@/store/useOSStore";
 import { buildCatalogue, AppCatalogueEntry } from "@/lib/appCatalogue";
-import { Github, Mail, Terminal, FolderGit2, BookOpen, ChevronRight, Linkedin, Briefcase, Package } from "lucide-react";
+import { Github, Mail, Terminal, FolderGit2, BookOpen, ChevronRight, Linkedin, Briefcase, Package, LayoutGrid } from "lucide-react";
+import { PROFILE } from "@/lib/profile";
+import DefaultViewToggle from "@/components/projects/DefaultViewToggle";
 
 export default function WelcomeApp() {
   const { openWindow, closeWindow } = useOSStore();
@@ -76,7 +79,10 @@ export default function WelcomeApp() {
 
   return (
     <div className="flex flex-col h-full font-sans text-foreground overflow-y-auto p-8 md:p-10 bg-background/50 backdrop-blur-md">
-      <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight mb-6 mt-2">
+      <p className="font-mono text-xs md:text-sm text-foreground/60 mt-2 mb-3">
+        {PROFILE.name} · {PROFILE.role}
+      </p>
+      <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight mb-6">
         Engineering interfaces <br />
         <span className="text-cyan-glowing">that think.</span>
       </h1>
@@ -116,9 +122,9 @@ export default function WelcomeApp() {
         </div>
       </div>
 
-      <div className="flex items-center gap-4 mb-4">
+      <div className="flex flex-wrap items-center gap-2 md:gap-4 mb-4">
         <a
-          href="https://github.com/dev-asterix"
+          href={PROFILE.links.github}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 px-4 py-2 rounded hover:bg-foreground/5 transition-colors font-medium text-sm text-foreground"
@@ -127,7 +133,7 @@ export default function WelcomeApp() {
           GitHub
         </a>
         <a
-          href="https://linkedin.com/in/ric-v"
+          href={PROFILE.links.linkedin}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 px-4 py-2 rounded hover:bg-foreground/5 transition-colors font-medium text-sm text-foreground"
@@ -136,7 +142,7 @@ export default function WelcomeApp() {
           LinkedIn
         </a>
         <a
-          href="https://drive.google.com/file/d/1-34NxUJF_Fj6-s4vUZVZIjIVO0VD-WX9/preview"
+          href={PROFILE.links.resume}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 px-4 py-2 rounded hover:bg-foreground/5 transition-colors font-medium text-sm text-foreground"
@@ -145,7 +151,7 @@ export default function WelcomeApp() {
           Resume
         </a>
         <a
-          href="mailto:support@astrx.dev"
+          href={`mailto:${PROFILE.email}`}
           className="flex items-center gap-2 px-4 py-2 rounded bg-cyan-glowing/10 border border-cyan-glowing/30 text-cyan-glowing hover:bg-cyan-glowing/20 transition-colors font-medium text-sm"
         >
           <Mail size={18} />
@@ -155,7 +161,16 @@ export default function WelcomeApp() {
 
       {/* ── Featured Projects (data-driven) ──────────────────────────────── */}
       <div className="flex flex-col gap-5 pt-6 border-t border-glass-border/30 mb-4">
-        <h2 className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Featured Projects</h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2 className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Featured Projects</h2>
+          <Link
+            href="/projects"
+            className="flex items-center gap-1.5 text-xs font-medium text-cyan-glowing hover:underline underline-offset-2"
+          >
+            <LayoutGrid size={13} />
+            All projects
+          </Link>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {featuredEntries.length > 0 ? (
             featuredEntries.map((entry) => (
@@ -167,7 +182,7 @@ export default function WelcomeApp() {
                     maximized: true,
                   })
                 }
-                className="group flex items-center px-2 py-1 rounded-xl border border-glass-border bg-foreground/5 hover:bg-foreground/10 hover:border-cyan-glowing/50 transition-all text-left gap-4"
+                className="surface surface-interactive group flex items-center px-2 py-1 rounded-xl text-left gap-4"
               >
                 <div className="p-2 rounded-lg bg-background/50 border border-glass-border group-hover:scale-110 transition-transform shrink-0">
                   {entry.icon ? (
@@ -209,7 +224,7 @@ export default function WelcomeApp() {
             <button
               key={i}
               onClick={action.onClick}
-              className="group flex items-center p-2 rounded-xl border border-glass-border bg-foreground/5 hover:bg-foreground/10 hover:border-cyan-glowing/50 transition-all text-left gap-4"
+              className="surface surface-interactive group flex items-center p-2 rounded-xl text-left gap-4"
             >
               <div className="flex items-center gap-4 flex-1">
                 <div className="p-2 rounded-lg bg-background/50 border border-glass-border group-hover:scale-110 transition-transform shrink-0">
@@ -224,6 +239,17 @@ export default function WelcomeApp() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* ── Default view preference ─────────────────────────────────────── */}
+      <div className="flex flex-col gap-3 pt-6 mt-6 border-t border-glass-border/30 sm:flex-row sm:items-center sm:justify-between">
+        <DefaultViewToggle />
+        <Link
+          href="/projects"
+          className="text-xs font-medium text-foreground/60 hover:text-cyan-glowing underline-offset-2 hover:underline"
+        >
+          Switch to the projects website →
+        </Link>
       </div>
     </div>
   );

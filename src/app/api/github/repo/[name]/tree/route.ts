@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchRepoTree } from '@/lib/github';
+import { resolveRepoRef } from '@/lib/projects';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -9,14 +10,14 @@ export async function GET(
 ) {
   const resolvedParams = await params;
   const repoName = resolvedParams.name;
-  const username = 'dev-asterix';
+  const { owner: username, repo } = resolveRepoRef(repoName);
 
   const { searchParams } = new URL(request.url);
   const path = searchParams.get('path') || '';
   const recursive = searchParams.get('recursive') === 'true';
 
   try {
-    const tree = await fetchRepoTree(username, repoName, 'HEAD', recursive);
+    const tree = await fetchRepoTree(username, repo, 'HEAD', recursive);
 
     if (!tree) {
       return NextResponse.json({ error: 'Failed to fetch repo tree' }, { status: 500 });

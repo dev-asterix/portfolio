@@ -6,7 +6,6 @@
  */
 
 import {
-  fetchRepos,
   fetchRepo,
   fetchReadme,
   fetchCommits,
@@ -26,6 +25,8 @@ import {
   GitHubIssue,
 } from './github';
 import { githubCache } from './githubCache';
+import { getShowcaseRepos } from './projectStats';
+import { resolveRepoRef } from './projects';
 
 // ===== ENRICH TYPES =====
 
@@ -334,25 +335,26 @@ function computeActivityGraph(activity: CommitActivity[] | null | undefined): Ac
  * Fetch all repos with enriched data
  */
 export async function fetchAllReposEnriched(
-  username: string,
   excludeArchived: boolean = false,
   excludeForks: boolean = true
 ): Promise<EnrichedRepo[]> {
-  const cacheKey = `${username}:${excludeArchived}:${excludeForks}`;
+  const cacheKey = `showcase:${excludeArchived}:${excludeForks}`;
   const cached = githubCache.get<EnrichedRepo[]>('enriched_repos', cacheKey);
   if (cached) return cached;
 
-  let repos = await fetchRepos(username);
+  // The curated project list (all owners), not just one account's repos.
+  let repos = await getShowcaseRepos();
 
   if (excludeArchived) repos = repos.filter(r => !r.archived);
   if (excludeForks) repos = repos.filter(r => !r.fork);
 
   const enriched = await Promise.all(
     repos.map(async (repo): Promise<EnrichedRepo> => {
+      const { owner: username, repo: repoName } = resolveRepoRef(repo.name);
       const daysSinceLastUpdate = (Date.now() - new Date(repo.pushed_at).getTime()) / (1000 * 60 * 60 * 24);
 
       // Fetch activity for velocity calculation
-      const activity = await fetchCommitActivity(username, repo.name);
+      const activity = await fetchCommitActivity(username, repoName);
       const commitsLast90 = activity
         .slice(-13) // ~90 days
         .reduce((sum, w) => sum + w.total, 0);
@@ -361,7 +363,7 @@ export async function fetchAllReposEnriched(
       // Fetch latest release
       let releaseInfo: EnrichedRepo['releaseInfo'] | undefined;
       try {
-        const releases = await fetchReleases(username, repo.name);
+        const releases = await fetchReleases(username, repoName);
         if (releases.length > 0) {
           releaseInfo = {
             latestVersion: releases[0].tag_name,
@@ -374,9 +376,9 @@ export async function fetchAllReposEnriched(
 
       // Fetch issues and PRs count
       const [openIssues, openPRs, totalReleases] = await Promise.all([
-        fetchIssues(username, repo.name, 'open').then(i => i.length),
-        fetchPullRequests(username, repo.name, 'open').then(p => p.length),
-        fetchReleases(username, repo.name).then(r => r.length),
+        fetchIssues(username, repoName, 'open').then(i => i.length),
+        fetchPullRequests(username, repoName, 'open').then(p => p.length),
+        fetchReleases(username, repoName).then(r => r.length),
       ]);
 
       return {
@@ -463,8 +465,8 @@ export async function fetchRepoDetails(username: string, repoName: string) {
 /**
  * Compute portfolio-level metrics
  */
-export async function portfolioMetrics(username: string) {
-  const repos = await fetchAllReposEnriched(username, true, true);
+export async function portfolioMetrics() {
+  const repos = await fetchAllReposEnriched(true, true);
 
   const totalCommits = repos.reduce((sum, r) => {
     // Rough estimate from velocity

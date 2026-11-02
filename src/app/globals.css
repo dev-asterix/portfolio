@@ -16,7 +16,7 @@
   --background: #FFFFFF;
   --foreground: #1F2937;
   --emerald-burnt: #059669;
-  --cyan-glowing: #0891b2;
+  --cyan-glowing: #0e7490;
   --glass-bg: rgba(255, 255, 255, 0.7);
   --glass-border: rgba(0, 0, 0, 0.08);
 }
@@ -34,6 +34,225 @@
 body {
   background-color: var(--background);
   color: var(--foreground);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   Depth system — one light source, top-left.
+   Surfaces get a bright top/left edge, a soft glow in the top-left corner and
+   a shadow cast down-right. Tuned separately for light and dark.
+═══════════════════════════════════════════════════════════════════════════ */
+:root {
+  --depth-light: rgba(255, 255, 255, 0.95);   /* corner glow on surfaces */
+  --depth-edge: rgba(255, 255, 255, 1);       /* 1px highlight, top + left */
+  --depth-shade: rgba(15, 23, 42, 0.05);      /* 1px inner shade, bottom + right */
+  --depth-shadow: rgba(15, 23, 42, 0.16);     /* cast shadow */
+  --depth-glare: rgba(255, 255, 255, 0.35);   /* glare overlay on OS windows */
+  --surface-bg: color-mix(in srgb, var(--foreground) 3%, var(--background));
+  --dot-color: rgba(15, 23, 42, 0.09);
+}
+
+.dark {
+  --depth-light: rgba(255, 255, 255, 0.06);
+  --depth-edge: rgba(255, 255, 255, 0.09);
+  --depth-shade: rgba(0, 0, 0, 0.4);
+  --depth-shadow: rgba(0, 0, 0, 0.6);
+  --depth-glare: rgba(255, 255, 255, 0.045);
+  --surface-bg: color-mix(in srgb, var(--foreground) 2.5%, var(--background));
+  --dot-color: rgba(255, 255, 255, 0.07);
+}
+
+@layer components {
+  /* Raised surface lit from the top-left. */
+  .surface {
+    position: relative;
+    isolation: isolate;
+    background:
+      radial-gradient(120% 90% at 0% 0%, var(--depth-light), transparent 55%),
+      var(--surface-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow:
+      inset 1px 1px 0 var(--depth-edge),
+      inset -1px -1px 0 var(--depth-shade),
+      6px 10px 28px -14px var(--depth-shadow);
+    transition:
+      transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+      box-shadow 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+      border-color 0.3s ease,
+      background-color 0.3s ease;
+  }
+
+  /* Edges + cast shadow only, for elements that keep their own background. */
+  .depth {
+    box-shadow:
+      inset 1px 1px 0 var(--depth-edge),
+      inset -1px -1px 0 var(--depth-shade),
+      6px 10px 28px -14px var(--depth-shadow);
+  }
+
+  /* Hover: lift toward the light, accent edge, cursor-following spotlight. */
+  .surface-interactive::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    pointer-events: none;
+    background: radial-gradient(
+      380px circle at var(--mx, 0%) var(--my, 0%),
+      color-mix(in srgb, var(--cyan-glowing) 11%, transparent),
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+
+  .surface-interactive:hover,
+  .surface-interactive:focus-within {
+    border-color: color-mix(in srgb, var(--cyan-glowing) 38%, var(--glass-border));
+    box-shadow:
+      inset 1px 1px 0 var(--depth-edge),
+      inset -1px -1px 0 var(--depth-shade),
+      12px 20px 44px -18px var(--depth-shadow),
+      0 0 0 1px color-mix(in srgb, var(--cyan-glowing) 10%, transparent);
+  }
+
+  .surface-interactive:hover::before,
+  .surface-interactive:focus-within::before {
+    opacity: 1;
+  }
+
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .surface-interactive:hover {
+      transform: translateY(-3px);
+    }
+  }
+
+  /* Buttons: small lift on hover, press on click. */
+  .press {
+    transition:
+      transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+      background-color 0.2s ease,
+      border-color 0.2s ease,
+      color 0.2s ease,
+      box-shadow 0.2s ease,
+      opacity 0.2s ease;
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .press:hover { transform: translateY(-1px); }
+  }
+  .press:active { transform: translateY(0) scale(0.98); }
+
+  /* Underline that draws in from the left. */
+  .link-draw {
+    background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat;
+    transition: background-size 0.3s ease, color 0.2s ease;
+  }
+  .link-draw:hover,
+  .link-draw:focus-visible {
+    background-size: 100% 1px;
+  }
+
+  /* Website backdrop: accent light from the top-left over a fading dot grid. */
+  .site-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(55rem 38rem at -8% -12%, color-mix(in srgb, var(--cyan-glowing) 16%, transparent), transparent 62%),
+      radial-gradient(38rem 28rem at 108% 4%, color-mix(in srgb, var(--emerald-burnt) 9%, transparent), transparent 60%);
+  }
+  .site-backdrop::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(var(--dot-color) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    mask-image: radial-gradient(ellipse 85% 65% at 0% 0%, #000 10%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 85% 65% at 0% 0%, #000 10%, transparent 75%);
+  }
+
+  /* Gradient headline accent. */
+  .text-accent-gradient {
+    background: linear-gradient(100deg, var(--cyan-glowing), color-mix(in srgb, var(--cyan-glowing) 45%, var(--emerald-burnt)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Terminal caret. */
+  .caret::after {
+    content: "";
+    display: inline-block;
+    width: 0.08em;
+    height: 0.85em;
+    margin-left: 0.08em;
+    vertical-align: -0.05em;
+    background: var(--cyan-glowing);
+    border-radius: 1px;
+    animation: caret-blink 1.1s steps(1) infinite;
+  }
+
+  /* Live status dot. */
+  .pulse-dot {
+    position: relative;
+  }
+  .pulse-dot::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    background: inherit;
+    animation: pulse-ring 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+  }
+}
+
+/* ── Motion ────────────────────────────────────────────────────────────────── */
+@keyframes caret-blink { 50% { opacity: 0; } }
+@keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.6; } 100% { transform: scale(2.6); opacity: 0; } }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes reveal-up { from { opacity: 0; transform: translateY(28px) scale(0.985); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Staggered entrance on load. Set --d for the delay. */
+  .rise {
+    animation: rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  /* Scroll reveal — pure CSS where supported; everywhere else content is simply visible. */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal-up linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 40%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .caret::after, .pulse-dot::after { animation: none; }
+}
+
+/* ── Theme switching ───────────────────────────────────────────────────────── */
+/* View Transitions: the new theme is revealed as a circle (see lib/themeTransition.ts). */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+/* Fallback for browsers without View Transitions: cross-fade colours briefly. */
+.theme-fade,
+.theme-fade *,
+.theme-fade *::before,
+.theme-fade *::after {
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease,
+    border-color 0.4s ease,
+    fill 0.4s ease,
+    stroke 0.4s ease,
+    box-shadow 0.4s ease !important;
 }
 
 @utility glass {

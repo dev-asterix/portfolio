@@ -116,7 +116,7 @@ export default function Taskbar() {
       {/* ── Mobile Dock-Peek: minimized windows row ── */}
       {isMobile && minimizedWindows.length > 0 && (
         <div className="w-full flex items-center justify-center pointer-events-auto mb-2 px-4">
-          <div className="flex items-center gap-2 overflow-x-auto scrollbar-none max-w-[calc(100vw-32px)] px-2 py-1.5 rounded-xl border border-glass-border bg-background/60 backdrop-blur-md">
+          <div className="depth flex items-center gap-2 overflow-x-auto scrollbar-none max-w-[calc(100vw-32px)] px-2 py-1.5 rounded-xl border border-glass-border bg-background/60 backdrop-blur-md">
             {minimizedWindows.map((win) => (
               <motion.button
                 key={win.id}
@@ -157,8 +157,8 @@ export default function Taskbar() {
               title={app.label}
               {...(isRunning ? { "data-taskbar-app-button": "" } : {})}
               className={cn(
-                "relative w-11 h-11 flex items-center justify-center rounded-xl transition-transform text-foreground/60 border border-glass-border bg-transparent",
-                "hover:shadow-lg hover:ring-2 hover:ring-cyan-glowing/20",
+                "surface w-11 h-11 flex items-center justify-center rounded-xl text-foreground/60",
+                "hover:ring-2 hover:ring-cyan-glowing/20",
                 "focus-visible:ring-2 focus-visible:ring-cyan-glowing focus-visible:outline-none",
                 isActive ? "text-cyan-glowing ring-2 ring-cyan-glowing/30 shadow" : "text-foreground/60 hover:text-foreground/80"
               )}

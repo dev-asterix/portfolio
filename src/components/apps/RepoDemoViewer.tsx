@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { DEMO_CONTENT } from "@/lib/demoContent";
+import { DEMO_CONTENT, projectDemo } from "@/lib/demoContent";
+import { findProject } from "@/lib/projects";
 import { Disc } from "lucide-react";
 import { useKernel } from "@/lib/kernel";
 import HeroHeader from "./repoDemo/HeroHeader";
@@ -18,12 +19,17 @@ function resolveDemoContent(repoId: string) {
   if (direct) return direct;
 
   const repoIdLower = repoId.toLowerCase();
-  return Object.values(DEMO_CONTENT).find((demo) => {
+  const handWritten = Object.values(DEMO_CONTENT).find((demo) => {
     return (
       demo.id.toLowerCase() === repoIdLower ||
       demo.name.toLowerCase() === repoIdLower
     );
   });
+  if (handWritten) return handWritten;
+
+  // Any registry project gets a generated overview.
+  const project = findProject(repoId);
+  return project ? projectDemo(project) : undefined;
 }
 
 export default function RepoDemoViewer({ repoId }: RepoDemoViewerProps) {

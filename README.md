@@ -1,13 +1,42 @@
 # asterix.dev — Developer OS Portfolio
 
-A fully immersive, desktop OS–themed developer portfolio built with **Next.js 16 (App Router)**. Rather than a conventional scrolling site, it renders an interactive desktop environment complete with draggable windows, a taskbar, native-feeling apps, and a BIOS boot sequence.
+A developer portfolio built with **Next.js 16 (App Router)** that comes in two flavours:
+
+| URL | What it is |
+|-----|------------|
+| `/` | **Projects website** (default) — fast, scannable, mobile-first. |
+| `/os` | **Desktop OS** — an interactive desktop with draggable windows, a terminal, native-feeling apps and a BIOS boot sequence. |
+| `/projects` | The projects website, never redirected (stable link from inside the OS). |
+
+Visitors can flip **"Open the desktop OS by default"** on the website or in the OS Welcome window. The choice is stored
+in the `asterix-default-view` cookie, and `src/proxy.ts` redirects `/` → `/os` for those visitors (add `?view=site` to
+override).
 
 ---
 
 ## Features
 
+### 📇 Projects website (`/`)
+- Server-rendered, SEO-friendly, mobile-first page for visitors who want the facts fast: who, what, and how to get in touch.
+- Featured projects with highlights, stack and links, plus a filterable/searchable list of everything.
+- Per-project pages at `/projects/<slug>` with README, recent commits and language breakdown. Legacy URLs (e.g. `/projects/PgStudio`) redirect.
+- Linked from the OS login screen, the Welcome app, and a keyboard skip link on `/os`.
+
+### 🗂️ Updating the project list
+Projects are curated in **`src/lib/projects.ts`** — the single source of truth for what is showcased and how it is described.
+Projects can live under any GitHub owner (`dev-asterix`, `NexQL-OSS`, `ric-v`, …). Live stars / last-push dates are
+layered on at request time, and every page still renders if the GitHub API is rate-limited or down.
+
+Projects with a `group` (e.g. `"nexql"` for everything under NexQL-OSS) are shown together in a spotlight panel
+described by `PROJECT_GROUPS`; everything else appears in the filterable **Projects** grid. In the desktop OS, any
+registry project without a hand-written demo gets a generated overview window.
+
+To add a project, append an entry with `slug`, `owner`, `repo`, `tagline`, `description`, `highlights`, `category`,
+`language`, `stack`, and optionally `featured`, `liveUrl`, `links`, `icon`, and `demoId` (a key in `src/lib/demoContent.ts`
+for the interactive in-OS demo). Name, bio and contact links live in `src/lib/profile.ts`.
+
 ### 🖥️ OS Shell
-- **Boot Sequence** — Fake BIOS/kernel log stream on first visit, with a progress bar and CRT scanline overlay. Skipped on repeat visits (sessionStorage).
+- **Boot Sequence** — Fake BIOS/kernel log stream on first visit, with a progress bar and CRT scanline overlay. Press any key or tap to skip; skipped automatically on repeat visits (sessionStorage).
 - **MenuBar** — Fixed top bar with live clock (weekday + time), WiFi bars, real Battery API indicator, ThemeToggle, and a Power button for reboot.
 - **Taskbar / Dock** — Bottom dock with quick-launch icons and running app indicators. Click a running app to restore/focus it.
 - **Desktop Drag-Select** — Click-drag on empty desktop to draw a translucent selection box.
@@ -35,7 +64,15 @@ A fully immersive, desktop OS–themed developer portfolio built with **Next.js 
 | **Properties** | System info panel. |
 
 ### 🎨 Design
-- Carbon-dark theme with `cyan-glowing` and `emerald-burnt` accent palette.
+- **Light & dark modes** — follows the system by default; Light / System / Dark switch on the website, sun/moon toggle in
+  the OS menu bar (they share one setting). Switching animates as a circular reveal from the control you clicked
+  (View Transitions API), with a colour cross-fade fallback and an instant swap for reduced-motion users.
+- **One light source, top-left** — surfaces (`.surface`, `.depth` in `globals.css`) get a bright top/left edge, a soft
+  corner glow and a shadow cast down-right; OS windows add a faint glare. Tuned per mode via `--depth-*` variables.
+- **Hover & motion** — cards lift with an accent edge and a cursor-following spotlight (`SurfaceSpotlight`); buttons
+  lift and press; staggered entrance on load and CSS scroll-reveal (`.rise`, `.reveal`), all disabled under
+  `prefers-reduced-motion`.
+- Carbon theme with `cyan-glowing` and `emerald-burnt` accent palette.
 - Glassmorphism window chrome.
 - Framer Motion animations throughout.
 - CRT scanlines, vignette, custom cursor.
@@ -81,7 +118,10 @@ Create a `.env.local` file in the project root with the above variable.
 ```
 src/
 ├── app/
-│   ├── page.tsx                  # Root page (server component, fetches repos)
+│   ├── page.tsx                  # "/" — projects website (default landing)
+│   ├── os/page.tsx               # "/os" — desktop OS (server component, fetches repos)
+│   ├── projects/                 # "/projects" + /projects/[repo] detail pages
+│   ├── sitemap.ts, robots.ts     # SEO
 │   └── api/github/               # GitHub API proxy routes
 ├── components/
 │   ├── apps/                     # OS applications
@@ -106,7 +146,11 @@ src/
 │       └── DesktopDragSelect.tsx
 ├── store/
 │   └── useOSStore.ts             # Zustand OS state (windows, repos, settings)
+├── proxy.ts                      # Sends "/" to "/os" for visitors who chose the OS by default
 └── lib/
+    ├── projects.ts               # Curated project registry (edit this to update the project list)
+    ├── profile.ts                # Name, bio, contact links
+    ├── projectStats.ts           # Live GitHub stats for registry projects (server)
     ├── github.ts                 # GitHub API helpers
     └── sysinfo.ts                # System info helpers
 ```

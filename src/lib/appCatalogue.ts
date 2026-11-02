@@ -1,6 +1,7 @@
 import { GitHubRepo } from '@/lib/github';
 import { useOSStore } from '@/store/useOSStore';
 import { DEMO_CONTENT } from '@/lib/demoContent';
+import { PROJECTS, findProject } from '@/lib/projects';
 
 // ── App Catalogue Entry ───────────────────────────────────────────────────────
 
@@ -67,6 +68,9 @@ function findDemoIcon(repoName: string): string | null {
  *
  * Filtering:
  *  - Only repos with a parseable http/https homepage are included.
+ *  - Curated projects from the registry (lib/projects.ts) that live outside
+ *    the fetched repo list — e.g. NexQL under NexQL-OSS — are appended when
+ *    they have a live URL, so they can be featured and pinned too.
  *  - Archived repos are excluded unless settings.showArchived is true.
  *  - Forked repos are excluded unless settings.showForked is true.
  *
@@ -88,17 +92,50 @@ export function buildCatalogue(
     if (!(settings.showArchived ?? false) && repo.archived) continue;
     if (!(settings.showForked ?? false) && repo.fork) continue;
 
+    // Registry projects use their display name as the id ("NexQL MCP"), which
+    // is what featuredAppIds, pinnedApps and the demo viewer key on.
+    const project = findProject(repo.name);
+    const id = project ? (project.demoId ?? project.name) : repo.name;
     entries.push({
-      id: repo.name,
-      name: repo.name,
-      description: repo.description ?? '',
-      icon: findDemoIcon(repo.name),
+      id,
+      name: project?.name ?? repo.name,
+      description: project?.tagline ?? repo.description ?? '',
+      icon: project?.icon ?? findDemoIcon(id),
       url,
       topics: repo.topics ?? [],
       isArchived: repo.archived,
       isFork: repo.fork,
       pushedAt: new Date(repo.pushed_at).getTime(),
       stars: repo.stargazers_count,
+    });
+  }
+
+  // 1b. Curated projects not covered by the fetched repos (other owners,
+  //     renamed repos, or GitHub unavailable). Matched by repo or display name.
+  const seen = new Set(entries.map((e) => e.id.toLowerCase()));
+  for (const project of PROJECTS) {
+    const url = parseHomepage(project.liveUrl);
+    if (!url) continue;
+    const id = project.demoId ?? project.name;
+    if (
+      seen.has(id.toLowerCase()) ||
+      seen.has(project.repo.toLowerCase()) ||
+      seen.has(project.name.toLowerCase())
+    ) {
+      continue;
+    }
+    seen.add(id.toLowerCase());
+    entries.push({
+      id,
+      name: project.name,
+      description: project.tagline,
+      icon: project.icon ?? findDemoIcon(id),
+      url,
+      topics: project.stack,
+      isArchived: false,
+      isFork: false,
+      pushedAt: 0,
+      stars: 0,
     });
   }
 

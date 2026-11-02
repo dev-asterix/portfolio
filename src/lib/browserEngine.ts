@@ -16,12 +16,16 @@
  */
 
 import type { GitHubRepo } from "@/lib/github";
+import { projectForRepo } from "@/lib/projects";
 
 // ── Trusted demo domains — only these are iframed ───────────────────────────
 export const DEMO_REGISTRY: Record<string, string> = {
   portfolio:  "https://astrx.dev",
   drawdown: "https://drawdown.astrx.dev",
-  pgstudio:  "https://pgstudio.astrx.dev",
+  nexql:  "https://nexql.astrx.dev",
+  pgstudio:  "https://nexql.astrx.dev", // legacy alias — PgStudio is now NexQL
+  nexqlmcp:  "https://nexql-mcp.astrx.dev",
+  nexqlthemes:  "https://nexql-themes.astrx.dev",
   personal_portfolio:  "https://me.astrx.dev",
   andthetimeis: "https://timeis.astrx.dev",
 };
@@ -110,13 +114,16 @@ export function resolveUrl(input: string, repos: GitHubRepo[]): ResolvedRoute {
     return { type: "notfound", displayUrl: clean, title: "Not Found" };
   }
 
-  // ── 3. github.com/dev-asterix/[repo] ─────────────────────────────────────
-  const ghMatch = raw.match(/^(?:https?:\/\/)?github\.com\/dev-asterix\/([^/?\s#]+)/i);
+  // ── 3. github.com/<owner>/[repo] for any showcased project ──────────────
+  const ghMatch = raw.match(/^(?:https?:\/\/)?github\.com\/([^/?\s#]+)\/([^/?\s#]+)/i);
   if (ghMatch) {
-    const name = ghMatch[1];
-    const repo = repos.find(r => r.name.toLowerCase() === name.toLowerCase());
-    if (repo) {
-      return { type: "repo", repoName: repo.name, displayUrl: `/projects/${repo.name}`, title: repo.name };
+    const [, owner, name] = ghMatch;
+    // OS repos are named by project slug; also accept the real owner/repo URL.
+    const project = projectForRepo(owner, name);
+    const key = (project?.slug ?? name).toLowerCase();
+    const repo = repos.find(r => r.name.toLowerCase() === key);
+    if (repo && (project || owner.toLowerCase() === "dev-asterix")) {
+      return { type: "repo", repoName: repo.name, displayUrl: `/projects/${repo.name}`, title: project?.name ?? repo.name };
     }
   }
 

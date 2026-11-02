@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SystemInfo } from "@/lib/sysinfo";
 import { clearTmp, hydrateTmp } from "@/lib/vfs";
@@ -88,11 +88,32 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
   const [loadProgress, setLoadProgress] = useState(0);
   const [visible, setVisible] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
+  // Set once the boot has handed off to the desktop — by finishing or by being skipped.
+  const doneRef = useRef(false);
+
+  const finish = useCallback(() => {
+    if (doneRef.current) return;
+    doneRef.current = true;
+    sessionStorage.setItem(BOOT_DONE_KEY, "1");
+    setVisible(false);
+    onComplete();
+  }, [onComplete]);
+
+  // Any key, click or tap skips the boot animation.
+  useEffect(() => {
+    if (!shouldShow) return;
+    const skip = () => finish();
+    window.addEventListener("keydown", skip);
+    window.addEventListener("pointerdown", skip);
+    return () => {
+      window.removeEventListener("keydown", skip);
+      window.removeEventListener("pointerdown", skip);
+    };
+  }, [shouldShow, finish]);
 
   // Client-only: check sessionStorage AFTER hydration to avoid SSR mismatch
   useEffect(() => {
     const alreadyBooted = !!sessionStorage.getItem(BOOT_DONE_KEY);
-    console.log("[Boot] Mounted. alreadyBooted=", alreadyBooted, "| sessionStorage key=", sessionStorage.getItem(BOOT_DONE_KEY));
 
     // Clear /tmp on every boot start, then optionally restore from sessionStorage
     clearTmp();
@@ -107,25 +128,19 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
   // Once we know shouldShow, skip or start
   useEffect(() => {
     if (shouldShow === null) return; // still loading
-    console.log("[Boot] shouldShow resolved to:", shouldShow);
-    if (!shouldShow) {
-      console.log("[Boot] Skipping boot — already booted this session. Calling onComplete.");
-      setVisible(false);
-      onComplete();
-    }
-  }, [shouldShow, onComplete]);
+    if (!shouldShow) finish();
+  }, [shouldShow, finish]);
 
 
   // Phase: bios — stream lines one by one
   useEffect(() => {
     if (!shouldShow || phase !== "bios") return;
-    console.log("[Boot] Starting BIOS stream...");
     let cancelled = false;
 
     async function stream() {
       const biosLines = getBiosLines(systemInfo);
       for (const line of biosLines) {
-        if (cancelled) return;
+        if (cancelled || doneRef.current) return;
         await new Promise(r => setTimeout(r, line.delay));
         if (cancelled) return;
         setDisplayedLines(prev => [...prev, { text: line.text, type: classifyLine(line.text) }]);
@@ -147,6 +162,7 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
     if (phase !== "loading") return;
     let prog = 0;
     const step = () => {
+      if (doneRef.current) return;
       prog += 1;
       setLoadProgress(prog);
       if (prog < 100) {
@@ -154,20 +170,18 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
       } else {
         // Short pause, then mark done and call onComplete
         setTimeout(() => {
+          if (doneRef.current) return;
           sessionStorage.setItem(BOOT_DONE_KEY, "1");
           setPhase("done");
           // Play boot sound cue (Req 7.10)
           playCue("boot");
           // Give the 1.2s exit animation time to play
-          setTimeout(() => {
-            setVisible(false);
-            onComplete();
-          }, 500);
+          setTimeout(finish, 500);
         }, 300);
       }
     };
     setTimeout(step, 100);
-  }, [phase, onComplete]);
+  }, [phase, finish]);
 
   if (!visible) return null;
 
@@ -253,7 +267,7 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
 
           {/* Footer */}
           <div className="py-1 px-6 text-center text-[9px] text-gray-700 z-20 relative shrink-0 select-none">
-            dev-asterix OS · UEFI Secure Boot · Press DEL to enter setup · Built with ♥
+            dev-asterix OS · UEFI Secure Boot · <span className="text-gray-400">Press any key or tap to skip</span> · Built with ♥
           </div>
         </motion.div>
       )}

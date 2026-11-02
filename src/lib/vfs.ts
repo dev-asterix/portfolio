@@ -649,8 +649,10 @@ async function fetchRepoTree(repoName: string): Promise<VFSNode | null> {
   if (repoTreeCache.has(repoName)) return repoTreeCache.get(repoName)!;
 
   try {
-    // Note: To fetch the entire tree recursively, we hit github API
-    const res = await fetch(`https://api.github.com/repos/dev-asterix/${repoName}/git/trees/HEAD?recursive=1`);
+    // Via our API route: it resolves the project's real owner (e.g. NexQL-OSS),
+    // uses the server's GitHub token and caches — unlike calling GitHub directly
+    // from the browser (60 requests/hour, dev-asterix only).
+    const res = await fetch(`/api/github/repo/${encodeURIComponent(repoName)}/tree?recursive=true`);
     if (!res.ok) return null;
     const data = await res.json();
 

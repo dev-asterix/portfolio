@@ -4,6 +4,7 @@ import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import { useOSStore } from "@/store/useOSStore";
+import { switchTheme, centerOf } from "@/lib/themeTransition";
 
 export default function ThemeToggle() {
   const { theme, setTheme, resolvedTheme } = useTheme();
@@ -12,9 +13,9 @@ export default function ThemeToggle() {
 
   return (
     <button
-      onClick={() => {
+      onClick={(e) => {
         const newScheme = currentTheme === "dark" ? "light" : "dark";
-        setTheme(newScheme);
+        switchTheme(newScheme, (s) => setTheme(s), centerOf(e.currentTarget));
         try {
           window.dispatchEvent(new CustomEvent('os-event:theme-changed', { detail: { theme: newScheme } }));
         } catch (e) {

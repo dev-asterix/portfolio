@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { fetchFileContent } from '@/lib/github';
+import { resolveRepoRef } from '@/lib/projects';
 
 export const revalidate = 3600; // Cache for 1 hour
 
@@ -10,14 +11,14 @@ export async function GET(
   const resolvedParams = await params;
   const repoName = resolvedParams.name;
   const filePath = resolvedParams.path?.join('/') || '';
-  const username = 'dev-asterix';
+  const { owner: username, repo } = resolveRepoRef(repoName);
 
   if (!filePath) {
     return NextResponse.json({ error: 'Path parameter is required' }, { status: 400 });
   }
 
   try {
-    const content = await fetchFileContent(username, repoName, filePath);
+    const content = await fetchFileContent(username, repo, filePath);
 
     if (content === null) {
       return NextResponse.json({ error: 'File not found' }, { status: 404 });

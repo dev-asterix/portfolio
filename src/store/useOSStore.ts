@@ -142,8 +142,8 @@ export const SETTINGS_DEFAULTS: OSSettings = {
   reduceMotion: false,
   doNotDisturb: false,
   pinnedApps: [],
-  trustedDemoHosts: ['astrx.dev', 'drawdown.astrx.dev', 'pgstudio.astrx.dev', 'me.astrx.dev'],
-  featuredAppIds: ['PgStudio', 'drawdown', 'and-the-time-is'],
+  trustedDemoHosts: ['astrx.dev', 'drawdown.astrx.dev', 'nexql.astrx.dev', 'nexql-mcp.astrx.dev', 'nexql-themes.astrx.dev', 'timeis.astrx.dev', 'me.astrx.dev'],
+  featuredAppIds: ['NexQL', 'NexQL MCP', 'NexQL Themes', 'drawdown', 'and-the-time-is', 'Divulge'],
   skills: DEFAULT_SKILLS,
   restoreVfsOnReload: false,
 };
@@ -182,6 +182,9 @@ function isRfc1123Hostname(host: string): boolean {
  *
  * Requirements: 7.15, 8.10, 14.10
  */
+/** Former default featuredAppIds (after the PgStudio → NexQL rename). */
+const LEGACY_FEATURED_DEFAULTS: string[][] = [['NexQL', 'drawdown', 'and-the-time-is']];
+
 export function validateAndHeal(settings: Partial<OSSettings> | null | undefined): { result: OSSettings; healed: boolean } {
   const s = settings ?? {};
   let healed = false;
@@ -272,14 +275,20 @@ export function validateAndHeal(settings: Partial<OSSettings> | null | undefined
     featuredAppIds = s.featuredAppIds
       .filter((v): v is string => typeof v === 'string')
       .map((id) => {
-        // Backward compatibility for older persisted settings.
-        if (id === 'pgStudio') {
+        // Backward compatibility: PgStudio was renamed to NexQL (NexQL-OSS/core).
+        if (id === 'pgStudio' || id === 'PgStudio') {
           healed = true;
-          return 'PgStudio';
+          return 'NexQL';
         }
         return id;
       });
     if (featuredAppIds.length !== (s.featuredAppIds as unknown[]).length) healed = true;
+    // Visitors still on a previous *default* list get the current one; a list
+    // someone customised is left alone.
+    if (LEGACY_FEATURED_DEFAULTS.some((d) => d.join('|') === featuredAppIds.join('|'))) {
+      featuredAppIds = [...SETTINGS_DEFAULTS.featuredAppIds];
+      healed = true;
+    }
   } else {
     featuredAppIds = [...SETTINGS_DEFAULTS.featuredAppIds];
     healed = true;

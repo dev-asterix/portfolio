@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
+import { resolveRepoRef } from '@/lib/projects';
 
 export const revalidate = 300; // 5 min cache
 
@@ -24,8 +25,13 @@ export async function GET(
     return NextResponse.json({ error: 'Invalid path' }, { status: 400 });
   }
 
-  const [username, repo, ...rest] = pathParts;
+  const [requestedOwner, requestedRepo, ...rest] = pathParts;
   const dirPath = rest.join('/');
+  // The OS addresses every project as dev-asterix/<slug>; map to the real repo.
+  const { owner: username, repo } =
+    requestedOwner === 'dev-asterix' && requestedRepo === 'portfolio'
+      ? { owner: requestedOwner, repo: requestedRepo }
+      : resolveRepoRef(requestedRepo, requestedOwner);
 
   const { searchParams } = new URL(request.url);
   const raw = searchParams.get('raw') === 'true';
