@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { ArrowUpRight, Github, Star, Check } from "lucide-react";
 import { githubUrl, type Project } from "@/lib/projects";
 
@@ -34,15 +35,22 @@ export function LanguageDot({ language }: { language: string }) {
 
 function ProjectIcon({ project, size }: { project: Project; size: number }) {
   if (project.icon) {
+    // .ico can't go through the image optimizer; everything else is resized
+    // server-side (some source logos are >1 MB).
+    if (project.icon.endsWith(".ico")) {
+      return (
+        // eslint-disable-next-line @next/next/no-img-element -- .ico is not supported by next/image
+        <img src={project.icon} alt="" width={size} height={size} loading="lazy" className="object-contain" style={{ width: size, height: size }} />
+      );
+    }
     return (
-      // eslint-disable-next-line @next/next/no-img-element -- remote .ico/.png icons; next/image adds nothing here
-      <img
+      <Image
         src={project.icon}
         alt=""
         width={size}
         height={size}
-        loading="lazy"
-        className="object-contain"
+        sizes={`${size * 2}px`}
+        className="rounded-[22%] object-contain"
         style={{ width: size, height: size }}
       />
     );
@@ -103,7 +111,14 @@ function LinkRow({ project, compact = false }: { project: ProjectView; compact?:
   );
 }
 
-export function FeaturedProjectCard({ project }: { project: ProjectView }) {
+export function FeaturedProjectCard({
+  project,
+  showCategory = true,
+}: {
+  project: ProjectView;
+  /** Hide the category pill where it would be redundant (e.g. inside a group). */
+  showCategory?: boolean;
+}) {
   return (
     <article className="surface surface-interactive group flex h-full flex-col gap-4 rounded-2xl p-6">
       <header className="flex items-start gap-4">
@@ -121,9 +136,11 @@ export function FeaturedProjectCard({ project }: { project: ProjectView }) {
           </h3>
           <p className="text-sm text-foreground/70">{project.tagline}</p>
         </div>
-        <span className="ml-auto hidden shrink-0 rounded-full border border-glass-border px-2.5 py-0.5 text-[11px] text-foreground/60 sm:inline-block">
-          {project.category}
-        </span>
+        {showCategory && (
+          <span className="ml-auto hidden shrink-0 rounded-full border border-glass-border px-2.5 py-0.5 text-[11px] text-foreground/60 sm:inline-block">
+            {project.category}
+          </span>
+        )}
       </header>
 
       <ul className="space-y-1.5 text-sm text-foreground/75">

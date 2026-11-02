@@ -27,6 +27,33 @@ export interface ProjectLink {
   url: string;
 }
 
+/** A family of related projects shown together (e.g. everything under NexQL-OSS). */
+export interface ProjectGroup {
+  id: string;
+  name: string;
+  /** GitHub org that hosts the group. */
+  org: string;
+  tagline: string;
+  description: string;
+  links: ProjectLink[];
+}
+
+export const PROJECT_GROUPS: ProjectGroup[] = [
+  {
+    id: "nexql",
+    name: "NexQL",
+    org: "NexQL-OSS",
+    tagline: "Open-source PostgreSQL tooling for developers and AI agents.",
+    description:
+      "A database workbench inside VS Code, a schema-aware MCP server that lets agents query Postgres safely, " +
+      "and a colour-theme family designed for database work.",
+    links: [
+      { label: "nexql.astrx.dev", url: "https://nexql.astrx.dev" },
+      { label: "NexQL-OSS on GitHub", url: "https://github.com/NexQL-OSS" },
+    ],
+  },
+];
+
 export interface Project {
   /** URL slug used by /projects/[slug]. */
   slug: string;
@@ -46,19 +73,24 @@ export interface Project {
   /** Primary language, used when GitHub data is unavailable. */
   language: string;
   stack: string[];
-  /** Shown first, with highlights, on the projects page and Welcome app. */
+  /** Shown with highlights on the website and in the OS Welcome app. */
   featured?: boolean;
+  /** Id of a PROJECT_GROUPS entry this project is shown under. */
+  group?: string;
   /** Live site / product page — also used for the in-OS demo browser. */
   liveUrl?: string;
   /** Extra links: docs, marketplace, package registry … */
   links?: ProjectLink[];
-  /** Key into DEMO_CONTENT for the interactive in-OS demo window. */
+  /** Key into DEMO_CONTENT for a hand-written in-OS demo (otherwise one is generated). */
   demoId?: string;
-  /** Square icon/logo URL. */
+  /** Square icon/logo URL (absolute, or a path under /public). */
   icon?: string;
 }
 
+const NEXQL_ICON = "https://raw.githubusercontent.com/NexQL-OSS/core/HEAD/resources/postgres-explorer.png";
+
 export const PROJECTS: Project[] = [
+  // ── NexQL-OSS ──────────────────────────────────────────────────────────────
   {
     slug: "nexql",
     name: "NexQL",
@@ -79,6 +111,7 @@ export const PROJECTS: Project[] = [
     language: "TypeScript",
     stack: ["TypeScript", "VS Code API", "PostgreSQL", "MCP"],
     featured: true,
+    group: "nexql",
     liveUrl: "https://nexql.astrx.dev",
     links: [
       {
@@ -87,7 +120,7 @@ export const PROJECTS: Project[] = [
       },
     ],
     demoId: "NexQL",
-    icon: "https://raw.githubusercontent.com/NexQL-OSS/core/HEAD/resources/postgres-explorer.png",
+    icon: NEXQL_ICON,
   },
   {
     slug: "nexql-mcp",
@@ -108,31 +141,40 @@ export const PROJECTS: Project[] = [
     language: "Rust",
     stack: ["Rust", "MCP", "PostgreSQL"],
     featured: true,
+    group: "nexql",
     liveUrl: "https://nexql-mcp.astrx.dev",
+    links: [{ label: "Install", url: "https://nexql-mcp.astrx.dev/install" }],
+    icon: NEXQL_ICON,
   },
   {
-    slug: "drawdown",
-    name: "drawdown",
-    owner: "dev-asterix",
-    repo: "drawdown",
-    tagline: "A trading journal and daily portfolio tracker.",
+    slug: "nexql-themes",
+    name: "NexQL Themes",
+    owner: "NexQL-OSS",
+    repo: "vsc-themes",
+    tagline: "A VS Code colour-theme family built for database work and everyday coding.",
     description:
-      "Visualise your equity curve, analyse drawdowns, log every transaction and spot patterns in your " +
-      "trading — in a clean, fast interface instead of a spreadsheet.",
+      "39 scenario-anchored variants — dark, light, OLED, homage, seasonal and more — sharing one design " +
+      "language: quiet keywords, a cool-to-warm syntax spectrum and a single accent reserved for errors.",
     highlights: [
-      "Real-time KPI dashboard: win rate, profit factor and more",
-      "Interactive equity curve with drawdown periods",
-      "Colour-coded performance calendar",
-      "Multi-fund tracking and a searchable transaction journal",
+      "39 variants: dark, light, OLED, Postgres homage, seasonal and more",
+      "The more often a token appears, the quieter its colour",
+      "One reserved accent — magenta always means an error",
+      "Available on the VS Code Marketplace and Open VSX",
     ],
-    category: "Web apps",
-    language: "TypeScript",
-    stack: ["Next.js", "React", "Tailwind CSS"],
+    category: "Developer tools",
+    language: "JavaScript",
+    stack: ["VS Code", "Open VSX", "Theme design"],
     featured: true,
-    liveUrl: "https://drawdown.astrx.dev",
-    demoId: "drawdown",
-    icon: "https://raw.githubusercontent.com/dev-asterix/drawdown/main/public/logo.png",
+    group: "nexql",
+    liveUrl: "https://nexql-themes.astrx.dev",
+    links: [
+      { label: "VS Code Marketplace", url: "https://marketplace.visualstudio.com/items?itemName=ric-v.nexql-themes" },
+      { label: "Open VSX", url: "https://open-vsx.org/extension/ric-v/nexql-themes" },
+    ],
+    icon: "https://raw.githubusercontent.com/NexQL-OSS/vsc-themes/HEAD/nexql-theme-logo.png",
   },
+
+  // ── Apps & tools ───────────────────────────────────────────────────────────
   {
     slug: "pacpad",
     name: "pacpad",
@@ -160,19 +202,44 @@ export const PROJECTS: Project[] = [
     repo: "and-the-time-is",
     tagline: "Real-time clocks across time zones, built for remote teams.",
     description:
-      "A clean, customisable view of the current time around the world — no mental maths before you " +
-      "ping a colleague on the other side of the planet.",
+      "Pin the time zones you care about and see live time, UTC offset and the difference from your own — " +
+      "or pick a moment and see what time it was everywhere else.",
     highlights: [
-      "Search and pin any time zone",
-      "Switchable layouts and date formats",
-      "Look up what time it was elsewhere at a given moment",
+      "Search zones by city, IANA name, abbreviation or UTC offset",
+      "Pinned cards with live time and offset relative to you",
+      "“Time Was” mode compares one timestamp across every pinned zone",
+      "24h, 12h, ISO and Unix display formats",
     ],
     category: "Web apps",
     language: "TypeScript",
     stack: ["Next.js", "React", "Redux Toolkit", "Tailwind CSS"],
+    featured: true,
     liveUrl: "https://timeis.astrx.dev",
     demoId: "and-the-time-is",
     icon: "https://raw.githubusercontent.com/dev-asterix/and-the-time-is/main/public/favicon.ico",
+  },
+  {
+    slug: "drawdown",
+    name: "drawdown",
+    owner: "dev-asterix",
+    repo: "drawdown",
+    tagline: "A trading journal and daily portfolio tracker.",
+    description:
+      "Visualise your equity curve, analyse drawdowns, log every transaction and spot patterns in your " +
+      "trading — in a clean, fast interface instead of a spreadsheet.",
+    highlights: [
+      "Real-time KPI dashboard: win rate, profit factor and more",
+      "Interactive equity curve with drawdown periods",
+      "Colour-coded performance calendar",
+      "Multi-fund tracking and a searchable transaction journal",
+    ],
+    category: "Web apps",
+    language: "TypeScript",
+    stack: ["Next.js", "React", "Tailwind CSS"],
+    featured: true,
+    liveUrl: "https://drawdown.astrx.dev",
+    demoId: "drawdown",
+    icon: "https://raw.githubusercontent.com/dev-asterix/drawdown/main/public/logo.png",
   },
   {
     slug: "asterix-os",
@@ -187,24 +254,79 @@ export const PROJECTS: Project[] = [
       "Window manager with snapping, resizing and a taskbar",
       "Terminal with a virtual UNIX-style file system",
       "Live GitHub explorer, README viewer and commit timelines",
+      "Light and dark themes with a shared top-left light source",
     ],
     category: "Web apps",
     language: "TypeScript",
     stack: ["Next.js", "React", "Zustand", "Framer Motion", "Tailwind CSS"],
+    featured: true,
     liveUrl: "https://astrx.dev",
+    icon: "/logo.png",
   },
   {
-    slug: "nexql-themes",
-    name: "NexQL Themes",
-    owner: "NexQL-OSS",
-    repo: "vsc-themes",
-    tagline: "Colour schemes for VS Code and its forks, from NexQL.",
-    description: "Editor themes designed alongside the NexQL workbench.",
-    highlights: ["Works in VS Code and Open VSX-based editors"],
+    slug: "divulge",
+    name: "Divulge",
+    owner: "ric-v",
+    repo: "divulge-keyvalue-db-ui",
+    tagline: "A web UI for inspecting and editing Go key-value databases.",
+    description:
+      "Upload a file-based key-value database, work on a local copy — view, add, update and remove pairs and " +
+      "buckets — then download the result. A Go service with a web UI.",
+    highlights: [
+      "Upload a database file and edit a local copy safely",
+      "View, add, update and remove key-value pairs",
+      "BoltDB buckets: browse, add and remove",
+      "Prebuilt releases for Windows and Linux, or run it with Docker",
+    ],
     category: "Developer tools",
-    language: "JavaScript",
-    stack: ["VS Code themes"],
-    liveUrl: "https://nexql-themes.astrx.dev",
+    language: "TypeScript",
+    stack: ["Go", "TypeScript", "BoltDB", "Docker"],
+    featured: true,
+    liveUrl: "https://ric-v.github.io/divulge-keyvalue-db-ui/",
+    links: [{ label: "Releases", url: "https://github.com/ric-v/divulge-keyvalue-db-ui/releases" }],
+    icon: "https://raw.githubusercontent.com/ric-v/divulge-keyvalue-db-ui/HEAD/ui/public/logo-120px.png",
+  },
+
+  // ── Go libraries ───────────────────────────────────────────────────────────
+  {
+    slug: "glog",
+    name: "glog",
+    owner: "ric-v",
+    repo: "glog",
+    tagline: "A concurrent, thread-safe logger for Go.",
+    description: "Simple interfaces for fast, safe logging from many goroutines, in plain text or structured JSON.",
+    highlights: [
+      "Thread-safe by design — log from any goroutine",
+      "Structured (JSON) or unstructured output",
+      "Format-string support and a one-line setup",
+    ],
+    category: "Libraries",
+    language: "Go",
+    stack: ["Go"],
+    featured: true,
+    links: [{ label: "pkg.go.dev", url: "https://pkg.go.dev/github.com/ric-v/glog" }],
+    icon: "https://raw.githubusercontent.com/ric-v/glog/HEAD/glugger.png",
+  },
+  {
+    slug: "go-func-collections",
+    name: "go-func-collections",
+    owner: "ric-v",
+    repo: "go-func-collections",
+    tagline: "Common slice helpers for Go that cut boilerplate.",
+    description:
+      "The functions you keep rewriting — In, Map, Filter, Reduce and friends — written once, for any element type.",
+    highlights: [
+      "In, Map, Filter and Reduce for any slice type",
+      "Insert, append, replace and remove at any position",
+      "Works with named types, not just primitives",
+    ],
+    category: "Libraries",
+    language: "Go",
+    stack: ["Go", "Generics"],
+    featured: true,
+    links: [
+      { label: "pkg.go.dev", url: "https://pkg.go.dev/github.com/ric-v/go-func-collections/array" },
+    ],
   },
   {
     slug: "task-master",
@@ -213,38 +335,16 @@ export const PROJECTS: Project[] = [
     repo: "task-master.go",
     tagline: "A customisable task execution system and library for Go.",
     description: "Schedule and run tasks from Go code with zero external dependencies.",
-    highlights: ["No third-party dependencies", "Usable as a library or a standalone runner"],
-    category: "Libraries",
-    language: "Go",
-    stack: ["Go"],
-  },
-  {
-    slug: "glog",
-    name: "glog",
-    owner: "ric-v",
-    repo: "glog",
-    tagline: "A concurrent, thread-safe logger for Go.",
-    description: "Simple interfaces for fast, safe logging from many goroutines, in plain text or structured JSON.",
-    highlights: ["Thread-safe by design", "Structured (JSON) or unstructured output", "Format-string support"],
-    category: "Libraries",
-    language: "Go",
-    stack: ["Go"],
-    links: [{ label: "pkg.go.dev", url: "https://pkg.go.dev/github.com/ric-v/glog" }],
-  },
-  {
-    slug: "go-func-collections",
-    name: "go-func-collections",
-    owner: "ric-v",
-    repo: "go-func-collections",
-    tagline: "Common collection helpers for Go that cut boilerplate.",
-    description: "Frequently needed array and collection functions, packaged so you stop rewriting them.",
-    highlights: ["Small, dependency-free helpers"],
-    category: "Libraries",
-    language: "Go",
-    stack: ["Go"],
-    links: [
-      { label: "pkg.go.dev", url: "https://pkg.go.dev/github.com/ric-v/go-func-collections/array" },
+    highlights: [
+      "Interval-based scheduler in a few lines of code",
+      "No third-party dependencies",
+      "Use it as a library or a standalone runner",
     ],
+    category: "Libraries",
+    language: "Go",
+    stack: ["Go"],
+    featured: true,
+    links: [{ label: "pkg.go.dev", url: "https://pkg.go.dev/github.com/dev-asterix/task-master.go" }],
   },
 ];
 
@@ -262,6 +362,9 @@ const LEGACY_ALIASES: Record<string, string> = {
   core: "nexql",
   portfolio: "asterix-os",
   "task-master.go": "task-master",
+  "nexql-vsc-themes": "nexql-themes",
+  "vsc-themes": "nexql-themes",
+  "divulge-keyvalue-db-ui": "divulge",
 };
 
 export function findProject(key: string): Project | undefined {
@@ -275,4 +378,8 @@ export function findProject(key: string): Project | undefined {
 
 export function featuredProjects(): Project[] {
   return PROJECTS.filter((p) => p.featured);
+}
+
+export function projectsInGroup(groupId: string): Project[] {
+  return PROJECTS.filter((p) => p.group === groupId);
 }

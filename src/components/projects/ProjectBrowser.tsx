@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { PROJECT_CATEGORIES, type ProjectCategory } from "@/lib/projects";
-import { CompactProjectCard, type ProjectView } from "./ProjectCards";
+import { CompactProjectCard, FeaturedProjectCard, type ProjectView } from "./ProjectCards";
 
 type Filter = ProjectCategory | "All";
 type Sort = "recent" | "stars" | "name";
@@ -14,10 +14,13 @@ const SORT_LABELS: Record<Sort, string> = { recent: "Recently updated", stars: "
 export default function ProjectBrowser({
   projects,
   updatedAt,
+  variant = "compact",
 }: {
   projects: ProjectView[];
   /** project slug → last push epoch ms, for sorting */
   updatedAt: Record<string, number>;
+  /** "rich" shows full featured cards with highlights. */
+  variant?: "compact" | "rich";
 }) {
   const [filter, setFilter] = useState<Filter>("All");
   const [query, setQuery] = useState("");
@@ -106,10 +109,16 @@ export default function ProjectBrowser({
       </p>
 
       {visible.length > 0 ? (
-        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul
+          className={
+            variant === "rich"
+              ? "grid grid-cols-1 gap-5 md:grid-cols-2"
+              : "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          }
+        >
           {visible.map((p) => (
             <li key={p.slug} className="reveal">
-              <CompactProjectCard project={p} />
+              {variant === "rich" ? <FeaturedProjectCard project={p} /> : <CompactProjectCard project={p} />}
             </li>
           ))}
         </ul>

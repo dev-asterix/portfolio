@@ -24,6 +24,7 @@ export const DEMO_REGISTRY: Record<string, string> = {
   nexql:  "https://nexql.astrx.dev",
   pgstudio:  "https://nexql.astrx.dev", // legacy alias — PgStudio is now NexQL
   nexqlmcp:  "https://nexql-mcp.astrx.dev",
+  nexqlthemes:  "https://nexql-themes.astrx.dev",
   personal_portfolio:  "https://me.astrx.dev",
   andthetimeis: "https://timeis.astrx.dev",
 };

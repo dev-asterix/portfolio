@@ -27,6 +27,10 @@ Projects are curated in **`src/lib/projects.ts`** — the single source of truth
 Projects can live under any GitHub owner (`dev-asterix`, `NexQL-OSS`, `ric-v`, …). Live stars / last-push dates are
 layered on at request time, and every page still renders if the GitHub API is rate-limited or down.
 
+Projects with a `group` (e.g. `"nexql"` for everything under NexQL-OSS) are shown together in a spotlight panel
+described by `PROJECT_GROUPS`; everything else appears in the filterable **Projects** grid. In the desktop OS, any
+registry project without a hand-written demo gets a generated overview window.
+
 To add a project, append an entry with `slug`, `owner`, `repo`, `tagline`, `description`, `highlights`, `category`,
 `language`, `stack`, and optionally `featured`, `liveUrl`, `links`, `icon`, and `demoId` (a key in `src/lib/demoContent.ts`
 for the interactive in-OS demo). Name, bio and contact links live in `src/lib/profile.ts`.

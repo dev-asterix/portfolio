@@ -8,7 +8,7 @@ export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: "Projects",
-  description: `Developer tools, web apps and libraries by ${PROFILE.name} — NexQL, NexQL MCP, drawdown, pacpad and more.`,
+  description: `Developer tools, web apps and libraries by ${PROFILE.name} — NexQL, NexQL MCP, NexQL Themes, pacpad, drawdown, Divulge and more.`,
   alternates: { canonical: "/" },
 };
 

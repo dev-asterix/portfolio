@@ -1,3 +1,5 @@
+import { githubUrl, type Project } from './projects';
+
 export type DemoContentBlock =
   | { type: 'text'; title?: string; content: string }
   | { type: 'image'; src: string; alt: string; caption?: string }
@@ -241,3 +243,41 @@ export const DEMO_CONTENT: Record<string, RepoDemoData> = {
     ],
   },
 };
+
+const HIGHLIGHT_EMOJI = ['⚡', '🧩', '🛡️', '🚀', '✨'];
+
+/**
+ * Builds an in-OS demo page from a registry project, for projects without a
+ * hand-written entry in DEMO_CONTENT — so every featured project opens to a
+ * real overview instead of "Demo Not Found".
+ */
+export function projectDemo(project: Project): RepoDemoData {
+  const source = githubUrl(project);
+  const blocks: DemoContentBlock[] = [
+    // The description already shows in the overview's "About this project" card.
+    {
+      type: 'use-cases',
+      title: 'What it does',
+      cases: project.highlights.map((h, i) => ({
+        emoji: HIGHLIGHT_EMOJI[i % HIGHLIGHT_EMOJI.length],
+        title: h,
+        description: '',
+      })),
+    },
+    { type: 'text', title: 'Built with', content: project.stack.join(' · ') },
+    ...(project.links ?? []).map(
+      (l): DemoContentBlock => ({ type: 'button', label: l.label, url: l.url, external: true }),
+    ),
+    { type: 'button', label: 'View source on GitHub', url: source, external: true },
+  ];
+  return {
+    id: project.name,
+    name: project.name,
+    subtitle: project.tagline,
+    description: project.description,
+    iconUrl: project.icon,
+    liveDemoUrl: project.liveUrl,
+    githubUrl: source,
+    blocks,
+  };
+}

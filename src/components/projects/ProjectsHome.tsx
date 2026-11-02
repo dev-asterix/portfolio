@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { Monitor, ArrowRight } from "lucide-react";
+import { Monitor, ArrowRight, ArrowUpRight } from "lucide-react";
 import { PROFILE } from "@/lib/profile";
+import { PROJECT_GROUPS } from "@/lib/projects";
 import { getProjectsWithStats, toProjectView } from "@/lib/projectStats";
 import { FeaturedProjectCard } from "@/components/projects/ProjectCards";
 import ProjectBrowser from "@/components/projects/ProjectBrowser";
@@ -11,7 +12,9 @@ import DefaultViewToggle from "@/components/projects/DefaultViewToggle";
 export default async function ProjectsHome() {
   const enriched = await getProjectsWithStats();
   const projects = enriched.map(toProjectView);
-  const featured = projects.filter((p) => p.featured);
+  const nexql = PROJECT_GROUPS.find((g) => g.id === "nexql")!;
+  const nexqlProjects = projects.filter((p) => p.group === nexql.id);
+  const others = projects.filter((p) => p.group !== nexql.id);
   const updatedAt = Object.fromEntries(
     enriched.map((p) => [p.slug, p.stats?.pushedAt ? new Date(p.stats.pushedAt).getTime() : 0]),
   );
@@ -109,36 +112,62 @@ export default async function ProjectsHome() {
           </div>
         </section>
 
-        {/* ── Featured ─────────────────────────────────────────────────── */}
-        <section id="work" aria-labelledby="featured-heading" className="flex scroll-mt-20 flex-col gap-8">
-          <div className="reveal">
-            <SectionHeading index="01" id="featured-heading" title="Featured work" sub="What I'm building and maintaining right now." />
+        {/* ── NexQL spotlight ───────────────────────────────────────────── */}
+        <section id="work" aria-labelledby="nexql-heading" className="flex scroll-mt-20 flex-col gap-8">
+          <div className="reveal flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <SectionHeading
+              index="01"
+              id="nexql-heading"
+              title={nexql.name}
+              sub={
+                <>
+                  <span className="text-foreground/80">{nexql.tagline}</span> {nexql.description}
+                </>
+              }
+            />
+            <div className="flex shrink-0 flex-wrap gap-2">
+              {nexql.links.map((l) => (
+                <a
+                  key={l.url}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="press depth group inline-flex items-center gap-1.5 rounded-lg border border-glass-border bg-background/60 px-3 py-1.5 text-xs font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
+                >
+                  {l.label}
+                  <ArrowUpRight size={13} aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                </a>
+              ))}
+            </div>
           </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            {featured.map((p) => (
-              <div key={p.slug} className="reveal">
-                <FeaturedProjectCard project={p} />
-              </div>
-            ))}
+
+          <div className="surface rounded-3xl p-3 sm:p-4">
+            <p className="flex items-center gap-2 px-2 pb-3 pt-1 font-mono text-xs text-foreground/55">
+              <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-cyan-glowing" />
+              github.com/{nexql.org}
+            </p>
+            <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {nexqlProjects.map((p, i) => (
+                <li key={p.slug} className={`reveal ${i === 0 ? "md:col-span-2 lg:col-span-1" : ""}`}>
+                  <FeaturedProjectCard project={p} showCategory={false} />
+                </li>
+              ))}
+            </ul>
           </div>
         </section>
 
-        {/* ── Everything ───────────────────────────────────────────────── */}
-        <section aria-labelledby="all-heading" className="flex flex-col gap-8">
+        {/* ── Everything else ──────────────────────────────────────────── */}
+        <section aria-labelledby="projects-heading" className="flex flex-col gap-8">
           <div className="reveal">
             <SectionHeading
               index="02"
-              id="all-heading"
-              title="All projects"
+              id="projects-heading"
+              title="Projects"
               sub={
                 <>
-                  Tools, apps and libraries across{" "}
+                  Apps, tools and Go libraries across{" "}
                   <a className="link-draw hover:text-cyan-glowing" href="https://github.com/dev-asterix">
                     dev-asterix
-                  </a>
-                  ,{" "}
-                  <a className="link-draw hover:text-cyan-glowing" href="https://github.com/NexQL-OSS">
-                    NexQL-OSS
                   </a>{" "}
                   and{" "}
                   <a className="link-draw hover:text-cyan-glowing" href={PROFILE.links.githubPersonal}>
@@ -149,7 +178,7 @@ export default async function ProjectsHome() {
               }
             />
           </div>
-          <ProjectBrowser projects={projects} updatedAt={updatedAt} />
+          <ProjectBrowser projects={others} updatedAt={updatedAt} variant="rich" />
         </section>
 
         {/* ── Contact ──────────────────────────────────────────────────── */}
