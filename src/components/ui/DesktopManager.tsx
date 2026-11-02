@@ -237,11 +237,11 @@ export default function DesktopManager({
             />
             <DesktopIcon
               id="icon-resume"
-              label="Resume"
+              label="About maker"
               icon={<Briefcase size={24} />}
               onClick={() =>
                 window.open(
-                  "https://drive.google.com/file/d/1-34NxUJF_Fj6-s4vUZVZIjIVO0VD-WX9/preview",
+                  "https://me.astrx.dev",
                   "_blank",
                 )
               }
@@ -318,11 +318,11 @@ export default function DesktopManager({
           />
           <DesktopIcon
             id="icon-resume"
-            label="Resume"
+            label="About maker"
             icon={<Briefcase size={24} />}
             onClick={() =>
               window.open(
-                "https://drive.google.com/file/d/1-34NxUJF_Fj6-s4vUZVZIjIVO0VD-WX9/preview",
+                "https://me.astrx.dev",
                 "_blank",
               )
             }

@@ -5,7 +5,7 @@ import { useOSStore } from "@/store/useOSStore";
 import useKernelStore from "@/store/useKernelStore";
 import { useKernel } from "@/lib/kernel";
 import { normalizePath, resolveVFSPath, getVFSChildren, vfsDisplayPath, VFSNode, getWritableArea, writeFile as vfsWriteFile, deleteFile as vfsDeleteFile, mkdir as vfsMkdir, readFile as vfsReadFile, VFSError } from "@/lib/vfs";
-import { Github, Linkedin, Mail } from "lucide-react";
+import { Github, Mail, ExternalLink } from "lucide-react";
 
 interface HistoryEntry {
   command: string;
@@ -15,12 +15,13 @@ interface HistoryEntry {
 const whoamiOutput = (
   <div className="flex flex-col gap-4 mt-2">
     <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-black dark:text-white leading-tight">
-      Engineering interfaces <br />
-      <span className="text-cyan-glowing">that think.</span>
+      Software for developers, <br />
+      <span className="text-cyan-glowing">built to be used.</span>
     </h1>
 
     <p className="text-foreground/70 max-w-xl text-sm md:text-base leading-relaxed">
-      Performance obsessive. Systems first. Features second. Minimal surface, maximum throughput. Building digital infrastructure and elegant minimalist applications.
+      astrx.dev — open-source developer tools, apps and libraries. NexQL, pacpad, drawdown and more. Run{" "}
+      <span className="text-emerald-burnt">ls</span> to browse the products.
     </p>
 
     <div className="flex items-center gap-4 mt-2 mb-2">
@@ -33,15 +34,14 @@ const whoamiOutput = (
         <Github size={18} />
         GitHub
       </a>
-
       <a
-        href="https://linkedin.com/in/ric-v"
+        href="https://me.astrx.dev"
         target="_blank"
         rel="noopener noreferrer"
         className="flex items-center gap-2 px-4 py-2 rounded hover:bg-foreground/5 transition-colors font-medium text-sm text-foreground"
       >
-        <Linkedin size={18} />
-        LinkedIn
+        <ExternalLink size={18} />
+        About the maker
       </a>
       <a
         href="mailto:support@astrx.dev"
@@ -813,7 +813,7 @@ export default function TerminalApp() {
     >
       <div className="mb-4 text-foreground/50 text-xs">
         <span className="text-cyan-glowing font-semibold">dev-asterix OS</span> <span className="text-foreground/30">[Version 2.0.0-kernel]</span><br />
-        <span className="text-foreground/30">(c) asterix.dev. All rights reserved.</span><br /><br />
+        <span className="text-foreground/30">(c) astrx.dev. All rights reserved.</span><br /><br />
         Type <span className="text-emerald-burnt">help</span> for a list of commands.
       </div>
 

@@ -246,10 +246,10 @@ export const PROJECTS: Project[] = [
     name: "asterix OS",
     owner: "dev-asterix",
     repo: "portfolio",
-    tagline: "This site — a portfolio with an optional desktop-OS mode.",
+    tagline: "A desktop operating system in your browser — and the home of every astrx.dev product.",
     description:
-      "A fast projects website, plus a desktop-OS mode with draggable windows, a terminal, a virtual file " +
-      "system and a live GitHub file explorer.",
+      "A browser-based desktop with draggable windows, a terminal, a virtual file system and a live GitHub " +
+      "file explorer — where each astrx.dev product opens in its own window.",
     highlights: [
       "Window manager with snapping, resizing and a taskbar",
       "Terminal with a virtual UNIX-style file system",

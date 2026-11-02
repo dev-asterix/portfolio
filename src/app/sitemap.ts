@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
-import { PROFILE } from "@/lib/profile";
+import { SITE } from "@/lib/site";
 import { PROJECTS } from "@/lib/projects";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = PROFILE.siteUrl;
+  const base = SITE.siteUrl;
   return [
     { url: `${base}/`, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/os`, changeFrequency: "monthly", priority: 0.6 },

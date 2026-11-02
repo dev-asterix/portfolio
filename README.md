@@ -1,12 +1,13 @@
-# asterix.dev — Developer OS Portfolio
+# astrx.dev — Product Showcase
 
-A developer portfolio built with **Next.js 16 (App Router)** that comes in two flavours:
+The showcase for products shipped under the **astrx.dev** brand — NexQL, pacpad, drawdown and more. It is about the
+products, not a person: the author's personal résumé lives at [me.astrx.dev](https://me.astrx.dev). Built with **Next.js 16 (App Router)** that comes in two flavours:
 
 | URL | What it is |
 |-----|------------|
-| `/` | **Projects website** (default) — fast, scannable, mobile-first. |
+| `/` | **Products website** (default) — fast, scannable, mobile-first. |
 | `/os` | **Desktop OS** — an interactive desktop with draggable windows, a terminal, native-feeling apps and a BIOS boot sequence. |
-| `/projects` | The projects website, never redirected (stable link from inside the OS). |
+| `/projects` | The products website, never redirected (stable link from inside the OS). |
 
 Visitors can flip **"Open the desktop OS by default"** on the website or in the OS Welcome window. The choice is stored
 in the `asterix-default-view` cookie, and `src/proxy.ts` redirects `/` → `/os` for those visitors (add `?view=site` to
@@ -16,8 +17,8 @@ override).
 
 ## Features
 
-### 📇 Projects website (`/`)
-- Server-rendered, SEO-friendly, mobile-first page for visitors who want the facts fast: who, what, and how to get in touch.
+### 📇 Products website (`/`)
+- Server-rendered, SEO-friendly, mobile-first page for visitors who want the facts fast: what each product does, where to try it, and how to get in touch.
 - Featured projects with highlights, stack and links, plus a filterable/searchable list of everything.
 - Per-project pages at `/projects/<slug>` with README, recent commits and language breakdown. Legacy URLs (e.g. `/projects/PgStudio`) redirect.
 - Linked from the OS login screen, the Welcome app, and a keyboard skip link on `/os`.
@@ -33,7 +34,7 @@ registry project without a hand-written demo gets a generated overview window.
 
 To add a project, append an entry with `slug`, `owner`, `repo`, `tagline`, `description`, `highlights`, `category`,
 `language`, `stack`, and optionally `featured`, `liveUrl`, `links`, `icon`, and `demoId` (a key in `src/lib/demoContent.ts`
-for the interactive in-OS demo). Name, bio and contact links live in `src/lib/profile.ts`.
+for the interactive in-OS demo). Brand name, description and contact links live in `src/lib/site.ts`.
 
 ### 🖥️ OS Shell
 - **Boot Sequence** — Fake BIOS/kernel log stream on first visit, with a progress bar and CRT scanline overlay. Press any key or tap to skip; skipped automatically on repeat visits (sessionStorage).
@@ -149,7 +150,7 @@ src/
 ├── proxy.ts                      # Sends "/" to "/os" for visitors who chose the OS by default
 └── lib/
     ├── projects.ts               # Curated project registry (edit this to update the project list)
-    ├── profile.ts                # Name, bio, contact links
+    ├── site.ts                   # Brand name, description, contact links
     ├── projectStats.ts           # Live GitHub stats for registry projects (server)
     ├── github.ts                 # GitHub API helpers
     └── sysinfo.ts                # System info helpers

@@ -4,7 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import CustomCursor from "@/components/ui/CustomCursor";
 import SurfaceSpotlight from "@/components/ui/SurfaceSpotlight";
-import { PROFILE } from "@/lib/profile";
+import { SITE } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,35 +16,34 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const DESCRIPTION =
-  `${PROFILE.name} — software engineer building high-throughput backends and developer tools ` +
-  "like NexQL, the PostgreSQL workbench for VS Code. Explore the work in a browser-based desktop OS.";
+const DESCRIPTION = SITE.description;
+const TITLE = `${SITE.name} — developer tools, apps and libraries`;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(PROFILE.siteUrl),
+  metadataBase: new URL(SITE.siteUrl),
   title: {
-    default: `${PROFILE.name} · asterix.dev`,
-    template: `%s · asterix.dev`,
+    default: TITLE,
+    template: `%s · ${SITE.name}`,
   },
   description: DESCRIPTION,
-  authors: [{ name: PROFILE.name, url: PROFILE.siteUrl }],
-  keywords: ["Richie Varghese", "dev-asterix", "NexQL", "PostgreSQL", "VS Code extension", "Go", "Rust", "TypeScript", "portfolio"],
+  applicationName: SITE.name,
+  keywords: ["astrx.dev", "NexQL", "PostgreSQL", "MCP server", "VS Code extension", "developer tools", "open source", "Go", "Rust", "TypeScript"],
   alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    url: PROFILE.siteUrl,
-    siteName: "asterix.dev",
-    title: `${PROFILE.name} · asterix.dev`,
+    url: SITE.siteUrl,
+    siteName: SITE.name,
+    title: TITLE,
     description: DESCRIPTION,
-    images: [{ url: "/card.png", width: 1024, height: 1024, alt: "asterix.dev" }],
+    images: [{ url: "/card.png", width: 1024, height: 1024, alt: SITE.name }],
   },
   twitter: {
     card: "summary",
-    title: `${PROFILE.name} · asterix.dev`,
+    title: TITLE,
     description: DESCRIPTION,
     images: ["/card.png"],
   },
-  appleWebApp: { capable: true, title: "asterix.dev", statusBarStyle: "black-translucent" },
+  appleWebApp: { capable: true, title: SITE.name, statusBarStyle: "black-translucent" },
 };
 
 // No maximum-scale: blocking pinch-zoom fails WCAG 1.4.4 (Resize Text).
