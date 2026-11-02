@@ -109,7 +109,7 @@ export default function MenuBar() {
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 pr-2 border-r border-glass-border">
             <Command className="w-3.5 h-3.5 text-foreground/80" />
-            <span className="font-semibold text-foreground/90">asterix.dev</span>
+            <span className="font-semibold text-foreground/90">astrx.dev</span>
           </div>
 
           <div ref={dropdownRef} className="relative flex items-center h-full">
@@ -154,7 +154,7 @@ export default function MenuBar() {
 
         {/* Center: Active window title (shown on medium+ screens) */}
         <div className="absolute left-1/2 -translate-x-1/2 hidden md:block text-foreground/50 text-[11px] truncate max-w-[280px] text-center pointer-events-none">
-          asterix.dev — Engineering interfaces that think.
+          astrx.dev — Software for developers, built to be used.
         </div>
 
         {/* Right: System Tray */}

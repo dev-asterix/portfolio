@@ -8,8 +8,8 @@ const SEEN_KEY = "asterix-onboarded";
 
 const STEPS = [
   {
-    title: "Welcome to asterix.dev",
-    body: "This is a fully interactive developer OS. Every window is draggable, resizable, and snappable — just like a real desktop.",
+    title: "Welcome to Asterix OS",
+    body: "astrx.dev's products live here. This is a fully interactive developer OS. Every window is draggable, resizable, and snappable — just like a real desktop.",
     spotlight: null, // full-screen intro, no spotlight
     position: "center",
   },

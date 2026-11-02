@@ -59,7 +59,7 @@ function getBiosLines(systemInfo: SystemInfo) {
     { text: "[    0.278991] Started Bluetooth                            [ OK ]", delay: 80 },
     { text: "[    0.301447] Reached target: Graphical Interface          [ OK ]", delay: 90 },
     { text: "", delay: 80 },
-    { text: "⬡  asterix.dev OS — session start", delay: 150 },
+    { text: "⬡  Asterix OS — session start", delay: 150 },
   ];
 }
 
@@ -244,7 +244,7 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
           {phase === "loading" && (
             <div className="px-6 py-5 z-20 relative">
               <div className="flex items-center gap-3 mb-2">
-                <span className="text-cyan-400 text-xs tracking-widest uppercase">Loading asterix.dev OS</span>
+                <span className="text-cyan-400 text-xs tracking-widest uppercase">Loading Asterix OS</span>
                 <span className="text-cyan-400 text-xs tabular-nums ml-auto">{loadProgress}%</span>
               </div>
               <div className="h-[3px] w-full bg-gray-800 rounded-full overflow-hidden">

@@ -1,35 +1,15 @@
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useOSStore } from "@/store/useOSStore";
 import { buildCatalogue, AppCatalogueEntry } from "@/lib/appCatalogue";
-import { Github, Mail, Terminal, FolderGit2, BookOpen, ChevronRight, Linkedin, Briefcase, Package, LayoutGrid } from "lucide-react";
-import { PROFILE } from "@/lib/profile";
+import { Github, Mail, Terminal, FolderGit2, BookOpen, ChevronRight, Package, LayoutGrid, ArrowUpRight } from "lucide-react";
+import { SITE } from "@/lib/site";
 import DefaultViewToggle from "@/components/projects/DefaultViewToggle";
 
 export default function WelcomeApp() {
   const { openWindow, closeWindow } = useOSStore();
   const repos = useOSStore((s) => s.repos);
   const settings = useOSStore((s) => s.settings);
-  const updateSettings = useOSStore((s) => s.updateSettings);
-
-  // ── Clamp and persist out-of-range skill levels ──────────────────────────────
-  useEffect(() => {
-    if (!settings.skills || settings.skills.length === 0) return;
-
-    let needsPersist = false;
-    const corrected = settings.skills.map((skill) => {
-      const clamped = Math.max(1, Math.min(5, Math.round(skill.level)));
-      if (clamped !== skill.level) {
-        needsPersist = true;
-        return { ...skill, level: clamped };
-      }
-      return skill;
-    });
-
-    if (needsPersist) {
-      updateSettings({ skills: corrected });
-    }
-  }, [settings.skills, updateSettings]);
 
   // ── Build featured projects from settings.featuredAppIds + catalogue ─────────
   const featuredEntries = useMemo(() => {
@@ -62,7 +42,7 @@ export default function WelcomeApp() {
     },
     {
       title: "System Architecture",
-      desc: "Read how this portfolio OS was built",
+      desc: "Read how Asterix OS was built",
       icon: <BookOpen size={18} className="text-amber-400" />,
       onClick: () => {
         openWindow("viewer", "Architecture.md", undefined, undefined, {
@@ -74,57 +54,26 @@ export default function WelcomeApp() {
     }
   ];
 
-  // ── Skills from settings (clamped above) ────────────────────────────────────
-  const skills = settings.skills ?? [];
-
   return (
     <div className="flex flex-col h-full font-sans text-foreground overflow-y-auto p-8 md:p-10 bg-background/50 backdrop-blur-md">
       <p className="font-mono text-xs md:text-sm text-foreground/60 mt-2 mb-3">
-        {PROFILE.name} · {PROFILE.role}
+        {SITE.name} · Asterix OS
       </p>
       <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-foreground leading-tight mb-6">
-        Engineering interfaces <br />
-        <span className="text-cyan-glowing">that think.</span>
+        Software for developers, <br />
+        <span className="text-cyan-glowing">built to be used.</span>
       </h1>
 
       <div className="mb-8">
         <p className="text-foreground/70 leading-relaxed text-sm md:text-base mb-5 font-mono">
-          Performance obsessive. Systems first. Features second. Minimal surface, maximum throughput. Building digital infrastructure and elegant minimalist applications.
+          Open-source developer tools, apps and libraries shipped under {SITE.name}. Open any product from the
+          dock, the desktop or the project list below.
         </p>
-
-        {/* ── Skills Strip ─────────────────────────────────────────────────── */}
-        <div className="flex flex-wrap gap-2 mb-2">
-          {skills.map((skill, i) => {
-            const level = Math.max(1, Math.min(5, Math.round(skill.level)));
-            return (
-              <div
-                key={i}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-foreground/5 border border-glass-border"
-              >
-                <span className={`text-xs font-semibold ${level >= 4 ? "text-cyan-glowing" : "text-foreground/90"}`}>
-                  {skill.name}
-                </span>
-                <span className="flex items-center gap-0.5">
-                  {Array.from({ length: 5 }, (_, dotIdx) => (
-                    <span
-                      key={dotIdx}
-                      className={`w-1.5 h-1.5 rounded-full ${
-                        dotIdx < level
-                          ? "bg-cyan-glowing"
-                          : "bg-foreground/20"
-                      }`}
-                    />
-                  ))}
-                </span>
-              </div>
-            );
-          })}
-        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-2 md:gap-4 mb-4">
         <a
-          href={PROFILE.links.github}
+          href={SITE.links.github}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 px-4 py-2 rounded hover:bg-foreground/5 transition-colors font-medium text-sm text-foreground"
@@ -133,25 +82,16 @@ export default function WelcomeApp() {
           GitHub
         </a>
         <a
-          href={PROFILE.links.linkedin}
+          href={SITE.maker.url}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 px-4 py-2 rounded hover:bg-foreground/5 transition-colors font-medium text-sm text-foreground"
         >
-          <Linkedin size={18} />
-          LinkedIn
+          <ArrowUpRight size={18} />
+          About the maker
         </a>
         <a
-          href={PROFILE.links.resume}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 px-4 py-2 rounded hover:bg-foreground/5 transition-colors font-medium text-sm text-foreground"
-        >
-          <Briefcase size={18} />
-          Resume
-        </a>
-        <a
-          href={`mailto:${PROFILE.email}`}
+          href={`mailto:${SITE.email}`}
           className="flex items-center gap-2 px-4 py-2 rounded bg-cyan-glowing/10 border border-cyan-glowing/30 text-cyan-glowing hover:bg-cyan-glowing/20 transition-colors font-medium text-sm"
         >
           <Mail size={18} />
@@ -162,13 +102,13 @@ export default function WelcomeApp() {
       {/* ── Featured Projects (data-driven) ──────────────────────────────── */}
       <div className="flex flex-col gap-5 pt-6 border-t border-glass-border/30 mb-4">
         <div className="flex items-center justify-between gap-4">
-          <h2 className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Featured Projects</h2>
+          <h2 className="text-xs font-bold text-foreground/50 uppercase tracking-widest">Featured Products</h2>
           <Link
             href="/projects"
             className="flex items-center gap-1.5 text-xs font-medium text-cyan-glowing hover:underline underline-offset-2"
           >
             <LayoutGrid size={13} />
-            All projects
+            All products
           </Link>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
