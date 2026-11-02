@@ -18,7 +18,7 @@ export function SiteHeader() {
             Contact
           </Link>
           <Link
-            href="/"
+            href="/os"
             className="inline-flex items-center gap-2 rounded-md border border-cyan-glowing/40 bg-cyan-glowing/10 px-3 py-1.5 font-medium text-cyan-glowing transition-colors hover:bg-cyan-glowing/20"
           >
             <Monitor size={15} aria-hidden />
@@ -62,7 +62,7 @@ export function SiteFooter() {
         </span>
         <span>
           Built with Next.js ·{" "}
-          <Link href="/" className="underline-offset-2 hover:text-cyan-glowing hover:underline">
+          <Link href="/os" className="underline-offset-2 hover:text-cyan-glowing hover:underline">
             try the desktop-OS version
           </Link>
         </span>

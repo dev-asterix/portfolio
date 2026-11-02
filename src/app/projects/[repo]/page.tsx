@@ -224,7 +224,7 @@ export default async function ProjectDetailPage({ params }: Params) {
             </section>
 
             <Link
-              href="/"
+              href="/os"
               className="inline-flex items-center justify-center gap-2 rounded-xl border border-glass-border p-4 text-sm text-foreground/70 transition-colors hover:border-cyan-glowing/50 hover:text-cyan-glowing"
             >
               <Monitor size={16} aria-hidden /> Explore the code in the desktop OS

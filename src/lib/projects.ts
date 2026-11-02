@@ -179,10 +179,10 @@ export const PROJECTS: Project[] = [
     name: "asterix OS",
     owner: "dev-asterix",
     repo: "portfolio",
-    tagline: "This site — a developer portfolio that boots like an operating system.",
+    tagline: "This site — a portfolio with an optional desktop-OS mode.",
     description:
-      "A desktop-OS-themed portfolio with draggable windows, a terminal, a virtual file system and a live " +
-      "GitHub file explorer, alongside this plain projects view.",
+      "A fast projects website, plus a desktop-OS mode with draggable windows, a terminal, a virtual file " +
+      "system and a live GitHub file explorer.",
     highlights: [
       "Window manager with snapping, resizing and a taskbar",
       "Terminal with a virtual UNIX-style file system",

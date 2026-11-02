@@ -4,6 +4,7 @@ import { useOSStore } from "@/store/useOSStore";
 import { buildCatalogue, AppCatalogueEntry } from "@/lib/appCatalogue";
 import { Github, Mail, Terminal, FolderGit2, BookOpen, ChevronRight, Linkedin, Briefcase, Package, LayoutGrid } from "lucide-react";
 import { PROFILE } from "@/lib/profile";
+import DefaultViewToggle from "@/components/projects/DefaultViewToggle";
 
 export default function WelcomeApp() {
   const { openWindow, closeWindow } = useOSStore();
@@ -238,6 +239,17 @@ export default function WelcomeApp() {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* ── Default view preference ─────────────────────────────────────── */}
+      <div className="flex flex-col gap-3 pt-6 mt-6 border-t border-glass-border/30 sm:flex-row sm:items-center sm:justify-between">
+        <DefaultViewToggle />
+        <Link
+          href="/projects"
+          className="text-xs font-medium text-foreground/60 hover:text-cyan-glowing underline-offset-2 hover:underline"
+        >
+          Switch to the projects website →
+        </Link>
       </div>
     </div>
   );

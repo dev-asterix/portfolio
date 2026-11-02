@@ -156,7 +156,7 @@ export default function LoginScreen({ onLogin }: LoginScreenProps) {
           href="/projects"
           className="text-sm text-foreground/60 hover:text-cyan-glowing underline-offset-4 hover:underline transition-colors"
         >
-          In a hurry? Skip the OS and view projects →
+          In a hurry? Switch to the projects website →
         </Link>
         <span className="text-foreground/40 text-xs tracking-widest uppercase text-center select-none">
           Asterix OS v2.0 — Quantum Engine

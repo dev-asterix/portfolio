@@ -1,16 +1,26 @@
 # asterix.dev — Developer OS Portfolio
 
-A fully immersive, desktop OS–themed developer portfolio built with **Next.js 16 (App Router)**. Rather than a conventional scrolling site, it renders an interactive desktop environment complete with draggable windows, a taskbar, native-feeling apps, and a BIOS boot sequence.
+A developer portfolio built with **Next.js 16 (App Router)** that comes in two flavours:
+
+| URL | What it is |
+|-----|------------|
+| `/` | **Projects website** (default) — fast, scannable, mobile-first. |
+| `/os` | **Desktop OS** — an interactive desktop with draggable windows, a terminal, native-feeling apps and a BIOS boot sequence. |
+| `/projects` | The projects website, never redirected (stable link from inside the OS). |
+
+Visitors can flip **"Open the desktop OS by default"** on the website or in the OS Welcome window. The choice is stored
+in the `asterix-default-view` cookie, and `src/proxy.ts` redirects `/` → `/os` for those visitors (add `?view=site` to
+override).
 
 ---
 
 ## Features
 
-### 📇 Classic projects view (`/projects`)
+### 📇 Projects website (`/`)
 - Server-rendered, SEO-friendly, mobile-first page for visitors who want the facts fast: who, what, and how to get in touch.
 - Featured projects with highlights, stack and links, plus a filterable/searchable list of everything.
 - Per-project pages at `/projects/<slug>` with README, recent commits and language breakdown. Legacy URLs (e.g. `/projects/PgStudio`) redirect.
-- Linked from the login screen ("Skip the OS"), the Welcome app, and a keyboard skip link on `/`.
+- Linked from the OS login screen, the Welcome app, and a keyboard skip link on `/os`.
 
 ### 🗂️ Updating the project list
 Projects are curated in **`src/lib/projects.ts`** — the single source of truth for what is showcased and how it is described.
@@ -96,8 +106,9 @@ Create a `.env.local` file in the project root with the above variable.
 ```
 src/
 ├── app/
-│   ├── page.tsx                  # Root page (server component, fetches repos)
-│   ├── projects/                 # Classic projects view + /projects/[repo] detail pages
+│   ├── page.tsx                  # "/" — projects website (default landing)
+│   ├── os/page.tsx               # "/os" — desktop OS (server component, fetches repos)
+│   ├── projects/                 # "/projects" + /projects/[repo] detail pages
 │   ├── sitemap.ts, robots.ts     # SEO
 │   └── api/github/               # GitHub API proxy routes
 ├── components/
@@ -123,6 +134,7 @@ src/
 │       └── DesktopDragSelect.tsx
 ├── store/
 │   └── useOSStore.ts             # Zustand OS state (windows, repos, settings)
+├── proxy.ts                      # Sends "/" to "/os" for visitors who chose the OS by default
 └── lib/
     ├── projects.ts               # Curated project registry (edit this to update the project list)
     ├── profile.ts                # Name, bio, contact links
