@@ -48,7 +48,7 @@ export default function PropertiesApp() {
   const eventBusActivity = events.length;
 
   const fallbackSystemInfo = systemInfo || {
-    osName: "dev-asterix OS",
+    osName: "Asterix OS",
     cpuModel: "Asterix Quantum Engine",
     build: "v1.0.0-stable",
   };
@@ -61,7 +61,7 @@ export default function PropertiesApp() {
         </div>
         <div>
           <h2 className="text-xl font-bold tracking-tight">System Properties</h2>
-          <p className="text-sm text-foreground/60">dev-asterix OS • v1.0.0-stable</p>
+          <p className="text-sm text-foreground/60">Asterix OS • v1.0.0-stable</p>
         </div>
       </div>
 

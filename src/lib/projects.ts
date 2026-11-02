@@ -194,6 +194,7 @@ export const PROJECTS: Project[] = [
     language: "Rust",
     stack: ["Rust", "ratatui", "Arch Linux"],
     featured: true,
+    icon: "/icons/pacpad.svg",
   },
   {
     slug: "and-the-time-is",
@@ -243,7 +244,7 @@ export const PROJECTS: Project[] = [
   },
   {
     slug: "asterix-os",
-    name: "asterix OS",
+    name: "Asterix OS",
     owner: "dev-asterix",
     repo: "portfolio",
     tagline: "A desktop operating system in your browser — and the home of every astrx.dev product.",
@@ -327,6 +328,7 @@ export const PROJECTS: Project[] = [
     links: [
       { label: "pkg.go.dev", url: "https://pkg.go.dev/github.com/ric-v/go-func-collections/array" },
     ],
+    icon: "/icons/go-func-collections.svg",
   },
   {
     slug: "task-master",
@@ -345,6 +347,7 @@ export const PROJECTS: Project[] = [
     stack: ["Go"],
     featured: true,
     links: [{ label: "pkg.go.dev", url: "https://pkg.go.dev/github.com/dev-asterix/task-master.go" }],
+    icon: "/icons/task-master.svg",
   },
 ];
 

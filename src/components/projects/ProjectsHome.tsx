@@ -180,17 +180,32 @@ export default async function ProjectsHome() {
             <SectionHeading
               index="02"
               id="projects-heading"
-              title="More products"
-              sub="Apps, command-line tools and Go libraries, all open source."
+              title={`More products (${others.length})`}
+              sub={`Apps, command-line tools and Go libraries, all open source. With the ${nexqlProjects.length} NexQL products above, that makes ${projects.length}.`}
             />
           </div>
           <ProjectBrowser projects={others} updatedAt={updatedAt} variant="rich" />
         </section>
 
+        {/* ── Who's behind this ────────────────────────────────────────── */}
+        <section aria-labelledby="maker-heading" className="reveal">
+          <div className="surface flex flex-col gap-4 rounded-2xl p-6 sm:p-8">
+            <SectionHeading index="03" id="maker-heading" title="Who's behind this" />
+            <p className="max-w-2xl leading-relaxed text-foreground/70">{SITE.maker.summary.join(" ")}</p>
+            <a
+              href={SITE.maker.url}
+              className="press depth group inline-flex w-fit items-center gap-1.5 rounded-lg border border-glass-border bg-background/60 px-3 py-2 text-sm font-medium hover:border-cyan-glowing/50 hover:text-cyan-glowing"
+            >
+              About {SITE.maker.name} on me.astrx.dev
+              <ArrowUpRight size={14} aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
+          </div>
+        </section>
+
         {/* ── Contact ──────────────────────────────────────────────────── */}
         <section id="contact" aria-labelledby="contact-heading" className="reveal scroll-mt-20">
           <div className="surface flex flex-col gap-5 rounded-2xl p-6 sm:p-10">
-            <SectionHeading index="03" id="contact-heading" title="Get in touch" />
+            <SectionHeading index="04" id="contact-heading" title="Get in touch" />
             <p className="max-w-2xl text-foreground/70">
               Questions, bug reports or ideas for a product? Email us, or open an issue on the product&apos;s
               GitHub repository.

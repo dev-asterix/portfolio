@@ -32,7 +32,7 @@ describe('buildCatalogue with the curated registry', () => {
       settings,
     );
     expect(cat.filter((e) => e.id.toLowerCase() === 'drawdown')).toHaveLength(1);
-    expect(cat.filter((e) => e.name === 'asterix OS')).toHaveLength(1);
+    expect(cat.filter((e) => e.name === 'Asterix OS')).toHaveLength(1);
   });
 
   it('still shows curated live projects when GitHub returned nothing', () => {

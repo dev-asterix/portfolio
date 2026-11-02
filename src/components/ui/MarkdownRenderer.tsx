@@ -15,9 +15,23 @@ import "@/styles/markdown.css";
 
 interface MarkdownRendererProps {
   content: string;
+  /** Project the markdown belongs to; used to describe images that have no alt text. */
+  subject?: string;
 }
 
-export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
+/** Fallback alt text for README images that ship without one, derived from the file name. */
+function describeImage(src: string | undefined, subject?: string): string {
+  const file = (src ?? "").split(/[?#]/)[0].split("/").pop() ?? "";
+  const words = file
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[-_.]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const label = words ? words.charAt(0).toUpperCase() + words.slice(1) : "Image";
+  return subject ? `${subject} screenshot: ${label}` : `Screenshot: ${label}`;
+}
+
+export default function MarkdownRenderer({ content, subject }: MarkdownRendererProps) {
   const { resolvedTheme } = useTheme();
   // Ensure code blocks get inline styles matching resolvedTheme to avoid stylesheet conflicts
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -42,6 +56,12 @@ export default function MarkdownRenderer({ content }: MarkdownRendererProps) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeHighlight]}
+        components={{
+          img: ({ alt, src, title, width, height }) => (
+            // eslint-disable-next-line @next/next/no-img-element -- README images are arbitrary remote URLs
+            <img title={title} width={width} height={height} src={typeof src === "string" ? src : undefined} alt={alt?.trim() ? alt : describeImage(typeof src === "string" ? src : undefined, subject)} loading="lazy" />
+          ),
+        }}
       >
         {content}
       </ReactMarkdown>

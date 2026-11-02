@@ -38,7 +38,7 @@ export function SiteHeader() {
           >
             <Monitor size={15} aria-hidden />
             <span>
-              <span className="hidden sm:inline">Launch </span>OS
+              <span className="hidden sm:inline">Launch </span>Asterix OS
             </span>
           </Link>
         </nav>
