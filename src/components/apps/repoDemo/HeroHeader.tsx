@@ -17,7 +17,7 @@ export default function HeroHeader({ data, onOpenInBrowser, collapsed }: HeroHea
         <div className="flex items-center gap-2.5 min-w-0">
           {data.iconUrl ? (
             <div className="relative w-7 h-7 rounded-md overflow-hidden bg-foreground/10 p-0.5 flex items-center justify-center border border-glass-border shrink-0">
-              <Image src={data.iconUrl} alt="icon" width={22} height={22} className="object-contain" />
+              <Image src={data.iconUrl} alt={`${data.name} icon`} width={22} height={22} className="object-contain" />
             </div>
           ) : (
             <div className="p-1.5 rounded-md bg-foreground/10 border border-glass-border shrink-0">
@@ -72,7 +72,7 @@ export default function HeroHeader({ data, onOpenInBrowser, collapsed }: HeroHea
         <div className="flex items-center gap-3 mb-1.5">
           {data.iconUrl ? (
             <div className="relative w-9 h-9 rounded-lg overflow-hidden bg-foreground/10 p-1 flex items-center justify-center backdrop-blur-md border border-glass-border shadow-lg">
-              <Image src={data.iconUrl} alt="icon" width={28} height={28} className="object-contain drop-shadow" />
+              <Image src={data.iconUrl} alt={`${data.name} icon`} width={28} height={28} className="object-contain drop-shadow" />
             </div>
           ) : (
             <div className="p-2 rounded-lg bg-foreground/10 backdrop-blur border border-glass-border">

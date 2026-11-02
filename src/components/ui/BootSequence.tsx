@@ -267,7 +267,7 @@ export default function BootSequence({ onComplete, systemInfo }: BootSequencePro
 
           {/* Footer */}
           <div className="py-1 px-6 text-center text-[9px] text-gray-700 z-20 relative shrink-0 select-none">
-            dev-asterix OS · UEFI Secure Boot · <span className="text-gray-400">Press any key or tap to skip</span> · Built with ♥
+            Asterix OS · UEFI Secure Boot · <span className="text-gray-400">Press any key or tap to skip</span> · Built with ♥
           </div>
         </motion.div>
       )}

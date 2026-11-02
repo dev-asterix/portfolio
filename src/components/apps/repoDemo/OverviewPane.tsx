@@ -379,7 +379,7 @@ function Footer({ data }: { data: RepoDemoData }) {
     <div className="mt-4 pt-6 border-t border-glass-border">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          {data.iconUrl && <Image src={data.iconUrl} alt="icon" width={20} height={20} className="rounded opacity-60" />}
+          {data.iconUrl && <Image src={data.iconUrl} alt={`${data.name} icon`} width={20} height={20} className="rounded opacity-60" />}
           <span className="text-xs text-foreground/40 font-medium">{data.name}</span>
           <span className="text-xs text-foreground/20">•</span>
           <span className="text-xs text-foreground/30">Built by dev-asterix</span>

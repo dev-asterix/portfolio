@@ -13,7 +13,7 @@ import { SITE } from "@/lib/site";
 export const revalidate = 3600; // revalidate every hour
 
 export const metadata: Metadata = {
-  title: "Desktop OS",
+  title: "Asterix OS",
   description: `Explore the ${SITE.name} products inside Asterix OS, an interactive, browser-based desktop operating system.`,
   alternates: { canonical: "/os" },
 };
@@ -37,7 +37,7 @@ export default async function Home() {
         <h1>{SITE.name} — {SITE.tagline}</h1>
         <p>{SITE.description}</p>
         <p>
-          This site is an interactive desktop OS. For a plain list of products, visit{" "}
+          This page is Asterix OS, an interactive desktop. For a plain list of products, visit{" "}
           <Link href="/projects">the products page</Link>.
         </p>
       </div>

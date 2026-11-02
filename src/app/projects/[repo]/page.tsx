@@ -166,7 +166,7 @@ export default async function ProjectDetailPage({ params }: Params) {
               </div>
               <div className="p-5 md:p-8">
                 {readme ? (
-                  <MarkdownRenderer content={absolutizeReadmeUrls(readme, owner, repoName)} />
+                  <MarkdownRenderer content={absolutizeReadmeUrls(readme, owner, repoName)} subject={project?.name ?? repoName} />
                 ) : (
                   <p className="py-8 text-center text-sm text-foreground/55">
                     README unavailable right now —{" "}
@@ -236,7 +236,7 @@ export default async function ProjectDetailPage({ params }: Params) {
               href="/os"
               className="surface surface-interactive inline-flex items-center justify-center gap-2 rounded-xl p-4 text-sm text-foreground/70 hover:text-cyan-glowing"
             >
-              <Monitor size={16} aria-hidden /> Explore the code in the desktop OS
+              <Monitor size={16} aria-hidden /> Explore the code in Asterix OS
             </Link>
           </aside>
         </div>

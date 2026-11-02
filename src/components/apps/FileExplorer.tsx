@@ -108,7 +108,7 @@ export default function FileExplorer() {
   const isRoot = navStack.length === 1;
 
   const fallbackSystemInfo = systemInfo || {
-    osName: "dev-asterix OS",
+    osName: "Asterix OS",
     cpuModel: "Asterix Quantum Engine",
     diskTotal: 1000 * 1024 ** 3,
     diskUsed: 420 * 1024 ** 3,

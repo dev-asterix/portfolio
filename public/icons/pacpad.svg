@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="pacpad">
+  <rect width="128" height="128" rx="28" fill="#0b1f26"/>
+  <path d="M84 40a28 28 0 1 0 0 48L64 64z" fill="#22d3ee"/>
+  <circle cx="86" cy="50" r="5" fill="#0b1f26"/>
+  <circle cx="92" cy="64" r="5" fill="#22d3ee" opacity=".55"/>
+  <circle cx="106" cy="64" r="5" fill="#22d3ee" opacity=".3"/>
+</svg>

@@ -440,7 +440,7 @@ export default function TerminalApp() {
 
               <div className="grid grid-cols-[80px_1fr] gap-x-2">
                 <span className="text-cyan-glowing font-semibold">OS</span>
-                <span className="text-foreground/80">{sysInfo?.osName || "dev-asterix OS"} x86_64</span>
+                <span className="text-foreground/80">{sysInfo?.osName || "Asterix OS"} x86_64</span>
 
                 <span className="text-cyan-glowing font-semibold">Kernel</span>
                 <span className="text-foreground/80">6.14.0-asterix</span>
@@ -812,7 +812,7 @@ export default function TerminalApp() {
       onClick={() => inputRef.current?.focus()}
     >
       <div className="mb-4 text-foreground/50 text-xs">
-        <span className="text-cyan-glowing font-semibold">dev-asterix OS</span> <span className="text-foreground/30">[Version 2.0.0-kernel]</span><br />
+        <span className="text-cyan-glowing font-semibold">Asterix OS</span> <span className="text-foreground/30">[Version 2.0.0-kernel]</span><br />
         <span className="text-foreground/30">(c) astrx.dev. All rights reserved.</span><br /><br />
         Type <span className="text-emerald-burnt">help</span> for a list of commands.
       </div>
