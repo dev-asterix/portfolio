@@ -204,6 +204,7 @@ export const PROJECTS: Project[] = [
     language: "Rust",
     stack: ["Rust", "ratatui", "Arch Linux"],
     featured: true,
+    liveUrl: "https://pacpad.astrx.dev",
     icon: "/icons/pacpad.svg",
   },
   {
